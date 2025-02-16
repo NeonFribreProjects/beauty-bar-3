@@ -1,0 +1,1 @@
+export const CATEGORIES = ['Featured', 'Eyelash', 'Waxing', 'Foot Care', 'Hand Care']; 

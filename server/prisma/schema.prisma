@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id            String    @id @default(cuid())
+  name          String
+  services      Service[]
+  availability  AdminAvailability[]
+  blockedDates  BlockedDate[]
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int      // Duration in minutes (integer)
+  discount    String?
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  availability ServiceAvailability?
+  bookings    Booking[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ServiceAvailability {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique
+  service         Service  @relation(fields: [serviceId], references: [id])
+  duration        Int      // in minutes
+  breakTime       Int      // buffer time between appointments
+  maxBookingsPerDay Int
+  daysAvailable   Int[]    // [1,2,3,4,5] for Mon-Fri
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BusinessHours {
+  id        String   @id @default(cuid())
+  dayOfWeek Int     // 0-6 for Sunday-Saturday
+  openTime  String  // "09:00"
+  closeTime String  // "17:00"
+  isOpen    Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlockedDate {
+  id              String   @id @default(cuid())
+  date            String   // "2024-03-20"
+  startTime       String?  // "09:00"
+  endTime         String?  // "17:00"
+  reason          String
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Booking {
+  id            String   @id @default(cuid())
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id])
+  customerName  String
+  customerEmail String
+  customerPhone String
+  date         String
+  startTime    String
+  endTime      String
+  status       String   // 'pending' | 'confirmed' | 'cancelled'
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // hashed
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdminAvailability {
+  id          String   @id @default(cuid())
+  categoryId  String   
+  category    Category @relation(fields: [categoryId], references: [id])
+  dayOfWeek   Int     // 0-6 for Sunday-Saturday
+  startTime   String  // "HH:mm" format
+  endTime     String  // "HH:mm" format
+  isAvailable Boolean @default(true)
+  maxBookings Int     @default(8)
+  breakTime   Int     @default(15)
+
+  @@unique([categoryId, dayOfWeek])
+} 
