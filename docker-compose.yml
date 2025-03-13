@@ -2,22 +2,38 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
     ports:
       - "3000:3000"
+    env_file:
+      - ./server/.env
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/beauty_bar
+      - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD}
+      - NODE_ENV=production
+      - CLIENT_URL=http://localhost:8080
     depends_on:
       - db
       - redis
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
 
   db:
     image: postgres:14-alpine
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=kevjeff1
       - POSTGRES_DB=beauty_bar
     volumes:
       - postgres_data:/var/lib/postgresql/data

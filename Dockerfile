@@ -25,6 +25,7 @@ COPY --from=frontend-builder /app/frontend/dist ./client/dist
 COPY --from=backend-builder /app/server/dist ./server/dist
 COPY --from=backend-builder /app/server/package*.json ./server/
 COPY --from=backend-builder /app/server/prisma ./server/prisma
+COPY prisma/migrations ./prisma/migrations
 
 # Install production dependencies
 WORKDIR /app/server

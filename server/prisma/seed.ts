@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -26,7 +26,11 @@ async function main() {
   ];
 
   for (const category of categories) {
-    await prisma.category.create({ data: category });
+    await prisma.category.upsert({
+      where: { name: category.name },
+      update: {},
+      create: category
+    });
   }
 
   // Create services
@@ -42,6 +46,7 @@ async function main() {
       name: 'Shellac Manicure',
       duration: 60,
       price: 40,
+      discount: 'salt scrub',
       categoryName: 'Featured'
     },
     {
@@ -117,7 +122,7 @@ async function main() {
       where: { name: service.categoryName }
     });
 
-    const createdService = await prisma.service.create({
+    const upsertedService = await prisma.service.create({
       data: {
         name: service.name,
         duration: service.duration,
@@ -128,13 +133,15 @@ async function main() {
     });
 
     // Create availability after service is created
-    await prisma.serviceAvailability.create({
-      data: {
-        serviceId: createdService.id, // Now we have the ID
-        duration: 60, // Default duration in minutes
+    await prisma.serviceAvailability.upsert({
+      where: { serviceId: upsertedService.id },
+      update: {},
+      create: {
+        serviceId: upsertedService.id,
+        duration: 60,
         breakTime: 15,
         maxBookingsPerDay: 8,
-        daysAvailable: [1, 2, 3, 4, 5, 6] // Monday to Saturday
+        daysAvailable: [1, 2, 3, 4, 5, 6]
       }
     });
   }

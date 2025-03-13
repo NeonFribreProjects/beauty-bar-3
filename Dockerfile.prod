@@ -10,13 +10,24 @@ WORKDIR /app/backend
 COPY server/package*.json ./
 RUN npm install
 COPY server/ .
+RUN npx prisma generate
+RUN npx tsc -p prisma/tsconfig.json
 RUN npm run build
 
 FROM node:18-alpine
 WORKDIR /app
-COPY --from=frontend-builder /app/frontend/dist ./public
-COPY --from=backend-builder /app/backend/dist ./
-COPY --from=backend-builder /app/backend/package*.json ./
-RUN npm install --production
-EXPOSE 80
-CMD ["node", "index.js"]
+RUN apk add --no-cache openssl
+COPY --from=frontend-builder /app/frontend/dist ./client/dist
+COPY --from=backend-builder /app/backend/dist ./server/dist
+COPY --from=backend-builder /app/backend/package*.json ./server/
+COPY --from=backend-builder /app/backend/prisma ./server/prisma
+RUN cd server && npm install --production
+RUN cd server && npx prisma generate
+RUN cd server && npm install typescript --save-dev
+RUN cd server && npx tsc prisma/seed.ts --outDir prisma
+
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+EXPOSE 3000
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

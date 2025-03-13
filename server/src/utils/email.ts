@@ -1,13 +1,46 @@
 import nodemailer from 'nodemailer';
 
 const ADMIN_EMAIL = 'jeffreycolonel212@gmail.com';
+
+// Create reusable transporter with better configuration
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // Use SSL
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD // Gmail App Password
+    pass: process.env.EMAIL_APP_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false,
+    ciphers: 'SSLv3'
   }
 });
+
+// Verify connection on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('SMTP Connection Error:', error);
+  } else {
+    console.log('SMTP Server is ready to send emails');
+  }
+});
+
+// Helper function to send email with retries
+const sendMailWithRetry = async (mailOptions: any, retries = 3) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully:', info.messageId);
+      return info;
+    } catch (error) {
+      console.error(`Email attempt ${attempt} failed:`, error);
+      if (attempt === retries) throw error;
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+    }
+  }
+};
 
 export const sendBookingConfirmation = async ({
   customerEmail,
@@ -66,11 +99,17 @@ export const sendBookingConfirmation = async ({
     `
   };
 
-  // Send both emails
-  await Promise.all([
-    transporter.sendMail(customerMailOptions),
-    transporter.sendMail(adminMailOptions)
-  ]);
+  // Send both emails with retry
+  try {
+    await Promise.all([
+      sendMailWithRetry(customerMailOptions),
+      sendMailWithRetry(adminMailOptions)
+    ]);
+    console.log('All confirmation emails sent successfully');
+  } catch (error) {
+    console.error('Failed to send confirmation emails:', error);
+    throw error;
+  }
 };
 
 export const sendBookingStatusUpdate = async ({
@@ -140,9 +179,15 @@ export const sendBookingStatusUpdate = async ({
     `
   };
 
-  // Send both emails
-  await Promise.all([
-    transporter.sendMail(customerMailOptions),
-    transporter.sendMail(adminMailOptions)
-  ]);
+  // Send both emails with retry
+  try {
+    await Promise.all([
+      sendMailWithRetry(customerMailOptions),
+      sendMailWithRetry(adminMailOptions)
+    ]);
+    console.log('All status update emails sent successfully');
+  } catch (error) {
+    console.error('Failed to send status update emails:', error);
+    throw error;
+  }
 }; 
