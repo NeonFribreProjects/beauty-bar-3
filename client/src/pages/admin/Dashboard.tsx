@@ -10,42 +10,66 @@ import { UserIcon, MailIcon, PhoneIcon, CalendarIcon, ClockIcon, CheckIcon, XIco
 import { format } from "date-fns";
 import { AvailabilityManager } from "@/components/admin/AvailabilityManager";
 
+// Define available service categories
 const CATEGORIES = ['Featured', 'Eyelash', 'Waxing', 'Foot Care', 'Hand Care'];
 
 const AdminDashboard = () => {
+  // State Management
+  // ---------------------------
+  // Track the currently selected service category
   const [selectedCategory, setSelectedCategory] = useState('Featured');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown
+  // Control mobile category dropdown visibility
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // Access React Query client for manual cache invalidation
   const queryClient = useQueryClient();
   
+  // Data Fetching
+  // ---------------------------
+  // Fetch all bookings using React Query
+  // This automatically handles caching, refetching, and loading states
   const { data: bookings = [] } = useQuery({
     queryKey: ['bookings'],
     queryFn: () => api.getBookings()
   });
 
+  // Booking Filtering Logic
+  // ---------------------------
+  // Filter bookings based on the selected category
   const categoryBookings = bookings.filter(booking => 
     booking.service?.category?.name === selectedCategory
   );
 
+  // Get today's date for filtering
   const today = new Date().toISOString().split('T')[0];
+  
+  // Filter bookings by their status and date
   const confirmedBookings = categoryBookings.filter(b => b.status === 'confirmed');
   const todayBookings = confirmedBookings.filter(b => b.date === today);
   const upcomingBookings = confirmedBookings.filter(b => b.date > today);
   const pendingBookings = categoryBookings.filter(b => b.status === 'pending');
   const cancelledBookings = categoryBookings.filter(b => b.status === 'cancelled');
   
+  // Booking Status Management
+  // ---------------------------
+  // Handle updating booking status (confirm/cancel)
   const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
+    // Show confirmation dialog before proceeding
     if (!confirm(`Are you sure you want to ${newStatus} this booking?`)) {
       return;
     }
 
     try {
+      // Update booking status via API
       await api.updateBookingStatus(bookingId, newStatus);
+      // Invalidate and refetch bookings data
       await queryClient.invalidateQueries(['bookings']);
+      // Show success notification
       toast({
         title: `Booking ${newStatus}`,
         description: `The booking has been ${newStatus} successfully.`
       });
     } catch (error) {
+      // Show error notification if update fails
       toast({
         variant: "destructive",
         title: "Error",
@@ -54,6 +78,9 @@ const AdminDashboard = () => {
     }
   };
 
+  // Booking Display Component
+  // ---------------------------
+  // Render individual booking cards with all relevant information
   const renderBooking = (booking) => (
     <Card key={booking.id} className="mb-4 border border-gray-200 hover:shadow-lg transition-all">
       <CardContent className="p-4 sm:p-6">
@@ -121,12 +148,17 @@ const AdminDashboard = () => {
     </Card>
   );
 
+  // Tab Configuration
+  // ---------------------------
   const tabs = ['Bookings', 'Availability'] as const;
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Bookings');
 
+  // Main Component Render
+  // ---------------------------
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Dashboard Header */}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Admin Dashboard</h1>
           <div className="flex items-center gap-2">
@@ -137,6 +169,7 @@ const AdminDashboard = () => {
           </div>
         </div>
         
+        {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof tabs[number])}>
           <TabsList className="w-full sm:w-auto">
             {tabs.map(tab => (
@@ -144,9 +177,11 @@ const AdminDashboard = () => {
             ))}
           </TabsList>
 
+          {/* Bookings Tab Content */}
           <TabsContent value="Bookings">
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              {/* Mobile Dropdown for Categories */}
+              {/* Mobile Category Selection */}
+              {/* Shows dropdown on mobile devices, hidden on desktop */}
               <div className="block sm:hidden mb-6">
                 <div
                   className="w-full p-2 border border-gray-300 rounded-md cursor-pointer flex items-center justify-between"
@@ -173,7 +208,8 @@ const AdminDashboard = () => {
                 )}
               </div>
 
-              {/* Desktop Tabs for Categories */}
+              {/* Desktop Category Selection */}
+              {/* Shows tabs on desktop, hidden on mobile */}
               <div className="hidden sm:block">
                 <Tabs defaultValue="Featured" onValueChange={setSelectedCategory}>
                   <TabsList className="mb-6 bg-gray-100/80 p-1 overflow-x-auto scrollbar-hide whitespace-nowrap">
@@ -190,9 +226,11 @@ const AdminDashboard = () => {
                 </Tabs>
               </div>
 
+              {/* Booking Lists by Category */}
               {CATEGORIES.map(category => (
                 <TabsContent key={category} value={category}>
                   <div className="space-y-6">
+                    {/* Booking Status Tabs */}
                     <Tabs defaultValue="today" className="w-full">
                       <TabsList className="w-full justify-start bg-transparent border-b overflow-x-auto scrollbar-hide whitespace-nowrap">
                         <TabsTrigger 
@@ -237,6 +275,7 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
+          {/* Availability Management Tab */}
           <TabsContent value="Availability">
             <AvailabilityManager />
           </TabsContent>
