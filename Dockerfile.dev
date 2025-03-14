@@ -1,0 +1,31 @@
+# Development image with full development dependencies
+FROM node:18-alpine
+
+# Install development tools
+RUN apk add --no-cache git curl
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY client/package*.json ./client/
+COPY server/package*.json ./server/
+
+# Install dependencies
+RUN npm install
+RUN cd client && npm install
+RUN cd server && npm install
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN cd server && npx prisma generate
+
+# Development startup script
+COPY dev-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/dev-entrypoint.sh
+
+EXPOSE 3000 5173
+
+CMD ["/usr/local/bin/dev-entrypoint.sh"] 
