@@ -1,8 +1,8 @@
 # Development image with full development dependencies
 FROM node:18-alpine
 
-# Install development tools
-RUN apk add --no-cache git curl
+# Install development tools and OpenSSL
+RUN apk add --no-cache git curl openssl
 
 WORKDIR /app
 
