@@ -12,11 +12,9 @@ cd /app/server
 echo "Running migrations..."
 npx prisma migrate dev
 
-# Run seeds if needed
-if [ "$SEED_DB" = "true" ]; then
-  echo "Running seeds..."
-  npx ts-node prisma/seed.ts
-fi
+# Always run seeds in development
+echo "Running seeds..."
+npx ts-node prisma/seed.ts
 
 # Start development servers
 echo "Starting development servers..."
