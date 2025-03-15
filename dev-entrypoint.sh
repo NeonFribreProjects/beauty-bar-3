@@ -15,10 +15,10 @@ npx prisma migrate dev
 # Run seeds if needed
 if [ "$SEED_DB" = "true" ]; then
   echo "Running seeds..."
-  npx prisma db seed
+  npx ts-node prisma/seed.ts
 fi
 
-# Start development servers using ts-node-dev
+# Start development servers
 echo "Starting development servers..."
 cd /app
 npm run dev 
