@@ -18,7 +18,7 @@ if [ "$SEED_DB" = "true" ]; then
   npx prisma db seed
 fi
 
-# Start development servers
+# Start development servers using ts-node-dev
 echo "Starting development servers..."
 cd /app
 npm run dev 
