@@ -84,7 +84,10 @@ const AdminDashboard = () => {
     const bookingDate = new Date(b.date).toISOString().split('T')[0];
     return bookingDate === today;
   });
-  const upcomingBookings = confirmedBookings.filter(b => b.date > today);
+  const upcomingBookings = confirmedBookings.filter(b => {
+    const bookingDate = new Date(b.date).toISOString().split('T')[0];
+    return bookingDate > today;
+  });
   const pendingBookings = categoryBookings.filter(b => b.status === 'pending');
   const cancelledBookings = categoryBookings.filter(b => b.status === 'cancelled');
   
@@ -126,67 +129,30 @@ const AdminDashboard = () => {
   // Booking Display Component
   // ---------------------------
   // Render individual booking cards with all relevant information
-  const renderBooking = (booking) => (
-    <Card key={booking.id} className="mb-4 border border-gray-200 hover:shadow-lg transition-all">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center gap-3">
-              <h3 className="text-lg font-semibold">{booking.service.name}</h3>
-              <Badge variant={
-                booking.status === 'confirmed' ? 'success' :
-                booking.status === 'pending' ? 'warning' : 'destructive'
-              }>
-                {booking.status}
-              </Badge>
-            </div>
-            
-            <div className="space-y-1 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <UserIcon className="w-4 h-4" />
-                <span>{booking.customerName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MailIcon className="w-4 h-4" />
-                <span>{booking.customerEmail}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <PhoneIcon className="w-4 h-4" />
-                <span>{booking.customerPhone}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <CalendarIcon className="w-4 h-4" />
-              <span>{format(new Date(booking.date), 'MMM dd, yyyy')}</span>
-              <ClockIcon className="w-4 h-4 ml-2" />
-              <span>{booking.startTime} - {booking.endTime}</span>
-            </div>
+  const renderBooking = (booking: Booking) => (
+    <Card key={booking.id} className="mb-4">
+      <CardContent className="flex flex-col gap-4 p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-semibold">{booking.service?.name}</h3>
+            <p className="text-sm text-gray-500">{booking.customerName}</p>
           </div>
-
-          <div className="flex flex-col gap-2 mt-4 sm:mt-0 sm:ml-4">
-            {booking.status === 'pending' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-28 bg-green-50 text-green-600 hover:bg-green-100"
-                onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
-              >
-                <CheckIcon className="w-4 h-4 mr-2" />
-                Confirm
-              </Button>
-            )}
-            {booking.status !== 'cancelled' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-28 bg-red-50 text-red-600 hover:bg-red-100"
-                onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
-              >
-                <XIcon className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-            )}
+          <Badge variant={
+            booking.status === 'confirmed' ? 'default' :
+            booking.status === 'pending' ? 'secondary' : 'destructive'
+          }>
+            {booking.status}
+          </Badge>
+        </div>
+        
+        <div className="flex flex-col gap-2 text-sm">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4" />
+            <span>{new Date(booking.date).toLocaleDateString()}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ClockIcon className="w-4 h-4" />
+            <span>{booking.startTime} - {booking.endTime}</span>
           </div>
         </div>
       </CardContent>
