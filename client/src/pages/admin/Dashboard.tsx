@@ -49,6 +49,12 @@ const AdminDashboard = () => {
   const pendingBookings = categoryBookings.filter(b => b.status === 'pending');
   const cancelledBookings = categoryBookings.filter(b => b.status === 'cancelled');
   
+  // Add these logs after the filtering logic
+  console.log('All bookings:', bookings);
+  console.log('Category bookings:', categoryBookings);
+  console.log('Today bookings:', todayBookings);
+  console.log('Selected category:', selectedCategory);
+  
   // Booking Status Management
   // ---------------------------
   // Handle updating booking status (confirm/cancel)
