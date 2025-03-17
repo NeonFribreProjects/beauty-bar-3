@@ -65,12 +65,15 @@ const AdminDashboard = () => {
     });
   }, [bookings, activeCategory, activeTab]);
 
-  // Booking Filtering Logic
-  // ---------------------------
-  // Filter bookings based on the selected category
-  const categoryBookings = bookings.filter(booking => 
-    booking.service?.category?.name === selectedCategory
-  );
+  // Add this debug log to see the booking data structure
+  console.log('Booking details:', bookings[0]);
+
+  // Replace the broken category filtering logic
+  const categoryBookings = selectedCategory === 'Featured'
+    ? bookings
+    : bookings.filter(booking => 
+        booking.service?.category?.name === selectedCategory
+      );
 
   // Get today's date for filtering
   const today = new Date().toISOString().split('T')[0];
@@ -269,43 +272,32 @@ const AdminDashboard = () => {
               {CATEGORIES.map(category => (
                 <TabsContent key={category} value={category}>
                   <div className="space-y-6">
-                    {/* Booking Status Tabs */}
                     <Tabs defaultValue="today" className="w-full">
-                      <TabsList className="w-full justify-start bg-transparent border-b overflow-x-auto scrollbar-hide whitespace-nowrap">
-                        <TabsTrigger 
-                          value="today"
-                          className="relative data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-pink-600"
-                        >
-                          Today ({todayBookings.length})
-                        </TabsTrigger>
-                        <TabsTrigger value="upcoming">
-                          Upcoming ({upcomingBookings.length})
-                        </TabsTrigger>
-                        <TabsTrigger value="pending">
-                          Pending ({pendingBookings.length})
-                        </TabsTrigger>
-                        <TabsTrigger value="cancelled">
-                          Cancelled ({cancelledBookings.length})
-                        </TabsTrigger>
+                      <TabsList>
+                        <TabsTrigger value="today">Today ({todayBookings.length})</TabsTrigger>
+                        <TabsTrigger value="upcoming">Upcoming ({upcomingBookings.length})</TabsTrigger>
+                        <TabsTrigger value="pending">Pending ({pendingBookings.length})</TabsTrigger>
+                        <TabsTrigger value="cancelled">Cancelled ({cancelledBookings.length})</TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="today" className="pt-6">
+                      <TabsContent value="today">
                         {todayBookings.length === 0 ? (
-                          <div className="text-center py-12 text-gray-500">
-                            No bookings for today
-                          </div>
+                          <div className="text-center py-12 text-gray-500">No bookings for today</div>
                         ) : (
-                          todayBookings.map(renderBooking)
+                          todayBookings.map(booking => renderBooking(booking))
                         )}
                       </TabsContent>
+                      
                       <TabsContent value="upcoming">
-                        {upcomingBookings.map(renderBooking)}
+                        {upcomingBookings.map(booking => renderBooking(booking))}
                       </TabsContent>
+                      
                       <TabsContent value="pending">
-                        {pendingBookings.map(renderBooking)}
+                        {pendingBookings.map(booking => renderBooking(booking))}
                       </TabsContent>
+                      
                       <TabsContent value="cancelled">
-                        {cancelledBookings.map(renderBooking)}
+                        {cancelledBookings.map(booking => renderBooking(booking))}
                       </TabsContent>
                     </Tabs>
                   </div>
