@@ -80,7 +80,10 @@ const AdminDashboard = () => {
   
   // Filter bookings by their status and date
   const confirmedBookings = categoryBookings.filter(b => b.status === 'confirmed');
-  const todayBookings = confirmedBookings.filter(b => b.date === today);
+  const todayBookings = confirmedBookings.filter(b => {
+    const bookingDate = new Date(b.date).toISOString().split('T')[0];
+    return bookingDate === today;
+  });
   const upcomingBookings = confirmedBookings.filter(b => b.date > today);
   const pendingBookings = categoryBookings.filter(b => b.status === 'pending');
   const cancelledBookings = categoryBookings.filter(b => b.status === 'cancelled');
@@ -273,7 +276,7 @@ const AdminDashboard = () => {
                 <TabsContent key={category} value={category}>
                   <div className="space-y-6">
                     <Tabs defaultValue="today" className="w-full">
-                      <TabsList>
+                      <TabsList className="w-full justify-start bg-transparent border-b overflow-x-auto scrollbar-hide whitespace-nowrap">
                         <TabsTrigger value="today">Today ({todayBookings.length})</TabsTrigger>
                         <TabsTrigger value="upcoming">Upcoming ({upcomingBookings.length})</TabsTrigger>
                         <TabsTrigger value="pending">Pending ({pendingBookings.length})</TabsTrigger>
@@ -284,20 +287,17 @@ const AdminDashboard = () => {
                         {todayBookings.length === 0 ? (
                           <div className="text-center py-12 text-gray-500">No bookings for today</div>
                         ) : (
-                          todayBookings.map(booking => renderBooking(booking))
+                          todayBookings.map(renderBooking)
                         )}
                       </TabsContent>
-                      
                       <TabsContent value="upcoming">
-                        {upcomingBookings.map(booking => renderBooking(booking))}
+                        {upcomingBookings.map(renderBooking)}
                       </TabsContent>
-                      
                       <TabsContent value="pending">
-                        {pendingBookings.map(booking => renderBooking(booking))}
+                        {pendingBookings.map(renderBooking)}
                       </TabsContent>
-                      
                       <TabsContent value="cancelled">
-                        {cancelledBookings.map(booking => renderBooking(booking))}
+                        {cancelledBookings.map(renderBooking)}
                       </TabsContent>
                     </Tabs>
                   </div>
