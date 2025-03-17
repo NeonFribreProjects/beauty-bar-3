@@ -151,17 +151,35 @@ const AdminDashboard = () => {
           <TabsContent value="Bookings">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <Tabs defaultValue="Featured" onValueChange={setSelectedCategory}>
-                <TabsList className="mb-6 bg-gray-100/80 p-1 overflow-x-auto scrollbar-hide whitespace-nowrap">
-                  {CATEGORIES.map(category => (
-                    <TabsTrigger 
-                      key={category} 
-                      value={category}
-                      className="px-4 sm:px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                    >
-                      {category}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+                {/* Mobile Category Selector */}
+                <div className="block sm:hidden mb-6">
+                  <select 
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full p-2 border rounded-md bg-white shadow-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                  >
+                    {CATEGORIES.map(category => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Desktop Category Tabs */}
+                <div className="hidden sm:block">
+                  <TabsList className="mb-6 bg-gray-100/80 p-1">
+                    {CATEGORIES.map(category => (
+                      <TabsTrigger 
+                        key={category} 
+                        value={category}
+                        className="px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                      >
+                        {category}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
 
                 {CATEGORIES.map(category => (
                   <TabsContent key={category} value={category}>
