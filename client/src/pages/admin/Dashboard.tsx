@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,24 @@ import { AvailabilityManager } from "@/components/admin/AvailabilityManager";
 
 // Define available service categories
 const CATEGORIES = ['Featured', 'Eyelash', 'Waxing', 'Foot Care', 'Hand Care'];
+
+// First, let's add proper type safety and debugging
+interface Booking {
+  id: string;
+  service: {
+    name: string;
+    category?: {
+      name: string;
+    };
+  };
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+}
 
 const AdminDashboard = () => {
   // State Management
@@ -27,10 +45,25 @@ const AdminDashboard = () => {
   // ---------------------------
   // Fetch all bookings using React Query
   // This automatically handles caching, refetching, and loading states
-  const { data: bookings = [] } = useQuery({
+  const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ['bookings'],
     queryFn: () => api.getBookings()
   });
+
+  // Add loading state
+  const [activeCategory, setActiveCategory] = useState<string>('Featured');
+  const [activeTab, setActiveTab] = useState<string>('today');
+
+  // Debug the render cycle
+  useEffect(() => {
+    console.log('Render cycle:', {
+      bookingsCount: bookings.length,
+      activeCategory,
+      activeTab,
+      categoryBookings: categoryBookings.length,
+      todayBookings: todayBookings.length
+    });
+  }, [bookings, activeCategory, activeTab]);
 
   // Booking Filtering Logic
   // ---------------------------
