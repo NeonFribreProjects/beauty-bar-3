@@ -60,8 +60,8 @@ export function AvailabilityManager() {
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between mb-6">
-        <h2 className="text-xl font-semibold">Manage Availability</h2>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold mb-3 sm:mb-0">Manage Availability</h2>
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
@@ -73,63 +73,43 @@ export function AvailabilityManager() {
         </select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {availability?.map((slot, index) => (
-          <div
-            key={index}
-            className="flex flex-col p-4 border rounded-lg bg-gray-50"
-          >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-3">
-              <span className="font-medium">{slot.time}</span>
+          <div key={index} className="p-4 border rounded-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3">
+              <span className="font-medium mb-2 sm:mb-0">{slot.time}</span>
               <Badge variant={slot.available ? 'success' : 'destructive'}>
                 {slot.available ? 'Available' : 'Unavailable'}
               </Badge>
             </div>
             
-            <div className="flex flex-col gap-2 mt-2">
+            <div className="mt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleAvailabilityToggle(slot.time)}
-                className={cn(
-                  "w-full justify-center",
-                  slot.available 
-                    ? "bg-red-50 text-red-600 hover:bg-red-100"
-                    : "bg-green-50 text-green-600 hover:bg-green-100"
-                )}
+                className="w-full justify-center"
               >
-                {slot.available ? (
-                  <>
-                    <XIcon className="w-4 h-4 mr-2" />
-                    Mark Unavailable
-                  </>
-                ) : (
-                  <>
-                    <CheckIcon className="w-4 h-4 mr-2" />
-                    Mark Available
-                  </>
-                )}
+                {slot.available ? 'Mark Unavailable' : 'Mark Available'}
               </Button>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mt-6 border-t pt-6">
+      <div className="flex flex-col sm:flex-row gap-3 mt-6">
         <Button
           variant="outline"
           onClick={handleMarkAllAvailable}
-          className="w-full sm:w-auto justify-center bg-green-50 text-green-600 hover:bg-green-100"
+          className="w-full sm:w-auto"
         >
-          <CheckIcon className="w-4 h-4 mr-2" />
           Mark All Available
         </Button>
         <Button
           variant="outline"
           onClick={handleMarkAllUnavailable}
-          className="w-full sm:w-auto justify-center bg-red-50 text-red-600 hover:bg-red-100"
+          className="w-full sm:w-auto"
         >
-          <XIcon className="w-4 h-4 mr-2" />
           Mark All Unavailable
         </Button>
       </div>
