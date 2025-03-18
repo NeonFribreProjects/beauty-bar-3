@@ -27,6 +27,9 @@ interface AvailabilityForm {
 export function AvailabilityManager() {
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
   const [view, setView] = useState<'regular' | 'blocks'>('regular');
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [newSlotTime, setNewSlotTime] = useState('09:00');
+  const [isLoading, setIsLoading] = useState(false);
   
   const { data: availability } = useQuery({
     queryKey: ['availability', selectedCategory],
@@ -41,6 +44,49 @@ export function AvailabilityManager() {
       toast({ title: "Availability updated" });
     }
   });
+
+  const handleSlotToggle = (index: number, checked: boolean) => {
+    const updatedSlots = [...timeSlots];
+    updatedSlots[index].isAvailable = checked;
+    setTimeSlots(updatedSlots);
+  };
+
+  const handleCapacityChange = (index: number, value: number) => {
+    const updatedSlots = [...timeSlots];
+    updatedSlots[index].maxBookings = value;
+    setTimeSlots(updatedSlots);
+  };
+
+  const handleSlotDelete = (index: number) => {
+    setTimeSlots(slots => slots.filter((_, i) => i !== index));
+  };
+
+  const handleAddSlot = () => {
+    setTimeSlots(slots => [...slots, {
+      dayOfWeek: 0,
+      startTime: newSlotTime,
+      endTime: '10:00',
+      isAvailable: true,
+      maxBookings: 1,
+      breakTime: 0
+    }]);
+  };
+
+  const handleReset = () => {
+    setTimeSlots([]);
+    setNewSlotTime('09:00');
+  };
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      await api.updateAvailability(selectedCategory, timeSlots);
+    } catch (error) {
+      toast({ title: "Error updating availability", description: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
@@ -61,23 +107,16 @@ export function AvailabilityManager() {
 
       {/* Time Slots Grid - Responsive */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {availability?.map((slot, index) => (
+        {timeSlots.map((slot, index) => (
           <div 
             key={index}
             className="flex flex-col p-4 border rounded-lg bg-gray-50"
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="font-medium">{slot.time}</span>
+              <span className="font-medium">{slot.startTime} - {slot.endTime}</span>
               <Switch
                 checked={slot.isAvailable}
-                onCheckedChange={(checked) => updateAvailability.mutate({
-                  dayOfWeek: slot.dayOfWeek,
-                  startTime: slot.startTime,
-                  endTime: slot.endTime,
-                  isAvailable: checked,
-                  maxBookings: slot.maxBookings,
-                  breakTime: slot.breakTime
-                })}
+                onCheckedChange={(checked) => handleSlotToggle(index, checked)}
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -85,28 +124,14 @@ export function AvailabilityManager() {
                 type="number"
                 min="0"
                 value={slot.maxBookings}
-                onChange={(e) => updateAvailability.mutate({
-                  dayOfWeek: slot.dayOfWeek,
-                  startTime: slot.startTime,
-                  endTime: slot.endTime,
-                  isAvailable: slot.isAvailable,
-                  maxBookings: parseInt(e.target.value),
-                  breakTime: slot.breakTime
-                })}
+                onChange={(e) => handleCapacityChange(index, parseInt(e.target.value))}
                 className="w-full"
                 placeholder="Capacity"
               />
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => updateAvailability.mutate({
-                  dayOfWeek: slot.dayOfWeek,
-                  startTime: slot.startTime,
-                  endTime: slot.endTime,
-                  isAvailable: slot.isAvailable,
-                  maxBookings: slot.maxBookings,
-                  breakTime: slot.breakTime
-                })}
+                onClick={() => handleSlotDelete(index)}
                 className="w-full sm:w-auto text-red-600 hover:bg-red-50"
               >
                 <Trash2 className="w-4 h-4" />
@@ -151,7 +176,7 @@ export function AvailabilityManager() {
       </div>
 
       {/* Loading State */}
-      {updateAvailability.isLoading && (
+      {isLoading && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
         </div>
