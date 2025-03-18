@@ -23,7 +23,7 @@ interface AvailabilityForm {
   breakTime: number;
 }
 
-export const AvailabilityManager = () => {
+export function AvailabilityManager() {
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
   const [view, setView] = useState<'regular' | 'blocks'>('regular');
   
@@ -42,49 +42,42 @@ export const AvailabilityManager = () => {
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h2 className="text-xl font-semibold">Manage Availability</h2>
-          <select 
-            className="w-full sm:w-auto p-2 border rounded-md bg-white shadow-sm focus:ring-2 focus:ring-pink-500"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Manage Availability</h2>
+        <div className="space-x-4">
+          <Button
+            variant={view === 'regular' ? 'default' : 'outline'}
+            onClick={() => setView('regular')}
           >
-            {CATEGORIES.map(category => (
-              <option key={category} value={category}>
-                {category}
-              </option>
+            Regular Hours
+          </Button>
+          <Button
+            variant={view === 'blocks' ? 'default' : 'outline'}
+            onClick={() => setView('blocks')}
+          >
+            Block Times
+          </Button>
+        </div>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+          <SelectContent>
+            {CATEGORIES.map(cat => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
             ))}
-          </select>
-        </div>
-
-        {view === 'regular' ? (
-          <RegularHours category={selectedCategory} />
-        ) : (
-          <AvailabilityCalendar category={selectedCategory} />
-        )}
-
-        <div className="flex flex-col sm:flex-row gap-3 pt-4">
-          <Button 
-            className="w-full sm:w-auto order-2 sm:order-1"
-            variant="outline"
-            onClick={() => {
-              // Implement reset functionality
-            }}
-          >
-            Reset Changes
-          </Button>
-          <Button 
-            className="w-full sm:w-auto order-1 sm:order-2"
-            onClick={() => {
-              // Implement save functionality
-            }}
-          >
-            Save Changes
-          </Button>
-        </div>
+          </SelectContent>
+        </Select>
       </div>
+
+      {view === 'regular' ? (
+        <RegularHours category={selectedCategory} />
+      ) : (
+        <AvailabilityCalendar category={selectedCategory} />
+      )}
     </div>
   );
-}; 
+} 
