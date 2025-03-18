@@ -198,8 +198,8 @@ export function AvailabilityCalendar({ category }: { category: string }) {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-6">
-      <div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+      <div className="order-1 sm:order-none">
         <Calendar
           mode="single"
           selected={selectedDate}
@@ -210,18 +210,18 @@ export function AvailabilityCalendar({ category }: { category: string }) {
           }}
           modifiersStyles={{
             'fully-blocked': { 
-              backgroundColor: 'rgb(239 68 68)', // red-500
+              backgroundColor: 'rgb(239 68 68)',
               color: 'white',
               fontWeight: 'bold'
             },
             'partially-blocked': { 
-              backgroundColor: 'rgb(249 115 22)', // orange-500
+              backgroundColor: 'rgb(249 115 22)',
               color: 'white'
             }
           }}
-          className="rounded-md border"
+          className="rounded-md border w-full"
         />
-        <div className="mt-4 flex gap-4 text-sm">
+        <div className="mt-4 flex flex-wrap gap-4 text-sm justify-center sm:justify-start">
           <div className="flex items-center gap-2">
             <div className="h-4 w-4 rounded bg-red-500" />
             <span>Fully Blocked</span>
@@ -233,9 +233,9 @@ export function AvailabilityCalendar({ category }: { category: string }) {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 order-2 sm:order-none">
         <Card>
-          <CardHeader>
+          <CardHeader className="space-y-2">
             <CardTitle>Block Time</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -247,11 +247,12 @@ export function AvailabilityCalendar({ category }: { category: string }) {
                   </div>
                 ) : (
                   <>
-                    <div className="flex justify-between items-center border-b pb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 border-b pb-4">
                       <span className="font-medium">Block Entire Day</span>
                       <Button
                         variant="destructive"
                         onClick={handleBlockEntireDay}
+                        className="w-full sm:w-auto"
                       >
                         Block Day
                       </Button>
@@ -275,6 +276,7 @@ export function AvailabilityCalendar({ category }: { category: string }) {
                         <Button
                           onClick={addTimeSlot}
                           disabled={!selectedDate || !currentSlot.start || !currentSlot.end || isFullDayBlocked(selectedDate)}
+                          className="w-full sm:w-auto"
                         >
                           Add Time Slot
                         </Button>
@@ -286,17 +288,16 @@ export function AvailabilityCalendar({ category }: { category: string }) {
             )}
 
             {pendingSlots.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <h4 className="font-medium">Pending Time Slots:</h4>
                 {pendingSlots.map((slot, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span>{slot.start} - {slot.end}</span>
+                  <div key={index} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <span className="text-sm">{slot.start} - {slot.end}</span>
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => setPendingSlots(prev => 
-                        prev.filter((_, i) => i !== index)
-                      )}
+                      onClick={() => setPendingSlots(prev => prev.filter((_, i) => i !== index))}
+                      className="w-full sm:w-auto"
                     >
                       Remove
                     </Button>
@@ -313,15 +314,16 @@ export function AvailabilityCalendar({ category }: { category: string }) {
           </CardContent>
         </Card>
 
-        {/* Blocked Times List */}
         {selectedDate && (
           <Card>
             <CardHeader>
-              <CardTitle>Blocked Times for {format(selectedDate, 'MMM dd, yyyy')}</CardTitle>
+              <CardTitle className="text-base sm:text-lg">
+                Blocked Times for {format(selectedDate, 'MMM dd, yyyy')}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {isFullDayBlocked(selectedDate) ? (
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                   <span>Entire Day Blocked</span>
                   <Button
                     variant="destructive"
@@ -333,17 +335,19 @@ export function AvailabilityCalendar({ category }: { category: string }) {
                       );
                       if (block) unblockDate.mutate(block.id);
                     }}
+                    className="w-full sm:w-auto"
                   >
                     Unblock Day
                   </Button>
                 </div>
               ) : (
                 getBlockedTimesForDate(selectedDate).map(block => (
-                  <div key={block.id} className="flex justify-between items-center">
+                  <div key={block.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <span>{block.startTime} - {block.endTime}</span>
                     <Button
                       variant="destructive"
                       onClick={() => unblockDate.mutate(block.id)}
+                      className="w-full sm:w-auto"
                     >
                       Unblock
                     </Button>
