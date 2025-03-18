@@ -45,6 +45,19 @@ export function AvailabilityManager() {
     }
   });
 
+  // Handler functions
+  const handleAvailabilityToggle = (time: string) => {
+    // Implementation of handleAvailabilityToggle
+  };
+
+  const handleMarkAllAvailable = () => {
+    // Implementation of handleMarkAllAvailable
+  };
+
+  const handleMarkAllUnavailable = () => {
+    // Implementation of handleMarkAllUnavailable
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between mb-6">
