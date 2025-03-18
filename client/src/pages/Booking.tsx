@@ -18,6 +18,47 @@ import { Input } from "../components/ui/input";
 import { format } from "date-fns";
 import { formatDuration } from "../lib/utils";
 
+const validateBookingFields = (
+  selectedDate: Date | undefined,
+  selectedTime: TimeSlot | undefined,
+  customerDetails: {
+    name: string;
+    email: string;
+    phone: string;
+  }
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (!selectedDate) {
+    errors.push("Please select a date");
+  }
+
+  if (!selectedTime) {
+    errors.push("Please select a time slot");
+  }
+
+  if (!customerDetails.name.trim()) {
+    errors.push("Name is required");
+  }
+
+  if (!customerDetails.email.trim()) {
+    errors.push("Email is required");
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerDetails.email)) {
+    errors.push("Please enter a valid email address");
+  }
+
+  if (!customerDetails.phone.trim()) {
+    errors.push("Phone number is required");
+  } else if (!/^\+?[\d\s-]{10,}$/.test(customerDetails.phone)) {
+    errors.push("Please enter a valid phone number");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
 const Booking = () => {
   const { serviceId } = useParams() as { serviceId: string };
   const navigate = useNavigate();
@@ -73,8 +114,25 @@ const Booking = () => {
   if (!service) return null;
 
   const handleBooking = async () => {
-    if (!selectedDate || !selectedTime || !service || isSubmitting) return;
-    
+    const validation = validateBookingFields(selectedDate, selectedTime, customerDetails);
+
+    if (!validation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Please fix the following errors:",
+        description: (
+          <ul className="list-disc pl-4">
+            {validation.errors.map((error, index) => (
+              <li key={index}>{error}</li>
+            ))}
+          </ul>
+        )
+      });
+      return;
+    }
+
+    if (isSubmitting) return;
+
     try {
       setIsSubmitting(true);
       
@@ -83,21 +141,10 @@ const Booking = () => {
         date: selectedDate.toISOString().split('T')[0],
         startTime: selectedTime.startTime,
         endTime: selectedTime.endTime,
-        customerName: customerDetails.name,
-        customerEmail: customerDetails.email,
-        customerPhone: customerDetails.phone
+        customerName: customerDetails.name.trim(),
+        customerEmail: customerDetails.email.trim(),
+        customerPhone: customerDetails.phone.trim()
       };
-      console.log('Sending booking data:', bookingData);
-      
-      // Validate required fields
-      if (!customerDetails.name || !customerDetails.email || !customerDetails.phone) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Please fill in all required fields"
-        });
-        return;
-      }
 
       await api.createBooking(bookingData);
       
@@ -108,11 +155,13 @@ const Booking = () => {
       
       navigate('/confirmation');
     } catch (error) {
+      console.error('Booking error:', error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to create booking. Please try again."
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -235,7 +284,14 @@ const Booking = () => {
 
                 <Button
                   className="w-full mt-6"
-                  disabled={!selectedDate || !selectedTime || isSubmitting}
+                  disabled={
+                    !selectedDate ||
+                    !selectedTime ||
+                    !customerDetails.name.trim() ||
+                    !customerDetails.email.trim() ||
+                    !customerDetails.phone.trim() ||
+                    isSubmitting
+                  }
                   onClick={handleBooking}
                 >
                   {isSubmitting ? "Booking..." : "Book Appointment"}
