@@ -36,13 +36,10 @@ export function RegularHours({ category }: RegularHoursProps) {
   React.useEffect(() => {
     if (serverAvailability) {
       const initialAvailability = DAYS_OF_WEEK.map((_, index) => {
-        // Use the actual day number as stored in the database
-        const dayNumber = index; // This now correctly maps to the DB's 0-6 Sunday-Saturday format
-        const existing = serverAvailability.find(d => d.dayOfWeek === dayNumber);
-        
+        const existing = serverAvailability.find(d => d.dayOfWeek === index);
         return {
-          dayOfWeek: dayNumber as DayOfWeek,
-          isAvailable: existing?.isAvailable ?? (dayNumber > 0 && dayNumber < 6), // Mon-Fri default to true
+          dayOfWeek: index,
+          isAvailable: existing?.isAvailable ?? (index < 5), // Mon-Fri default to true
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
           maxBookings: existing?.maxBookings ?? 8,
