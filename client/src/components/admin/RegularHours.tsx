@@ -6,8 +6,7 @@ import { TimeField } from '@/components/ui/time-field';
 import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+import { DAY_NAMES, DAYS_OF_WEEK, DayOfWeek } from '@/lib/constants';
 
 interface DayAvailability {
   dayOfWeek: number;
@@ -27,6 +26,8 @@ export function RegularHours({ category }: RegularHoursProps) {
   const [localAvailability, setLocalAvailability] = React.useState<DayAvailability[]>([]);
   const [hasChanges, setHasChanges] = React.useState(false);
 
+  const dayNames = DAY_NAMES;
+
   // Load initial data
   const { data: serverAvailability, isLoading } = useQuery({
     queryKey: ['availability', category],
@@ -36,11 +37,12 @@ export function RegularHours({ category }: RegularHoursProps) {
   // Initialize local state when server data changes
   React.useEffect(() => {
     if (serverAvailability) {
-      const initialAvailability = DAYS_OF_WEEK.map((_, index) => {
-        const existing = serverAvailability.find(d => d.dayOfWeek === index);
+      const initialAvailability = dayNames.map((_, index) => {
+        const dayOfWeek = index as DayOfWeek;
+        const existing = serverAvailability.find(d => d.dayOfWeek === dayOfWeek);
         return {
-          dayOfWeek: index,
-          isAvailable: existing?.isAvailable ?? index < 5, // Mon-Fri default to true
+          dayOfWeek,
+          isAvailable: existing?.isAvailable ?? dayOfWeek >= DAYS_OF_WEEK.MONDAY && dayOfWeek <= DAYS_OF_WEEK.FRIDAY,
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
           maxBookings: existing?.maxBookings ?? 8,
@@ -115,10 +117,10 @@ export function RegularHours({ category }: RegularHoursProps) {
 
       <div className="grid gap-6">
         {localAvailability.map((day, index) => (
-          <Card key={DAYS_OF_WEEK[index]}>
+          <Card key={dayNames[index]}>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>{DAYS_OF_WEEK[index]}</CardTitle>
+                <CardTitle>{dayNames[index]}</CardTitle>
                 <Switch 
                   checked={day.isAvailable} 
                   onCheckedChange={(checked) => 

@@ -147,7 +147,7 @@ async function main() {
   }
 
   // Create business hours
-  const days = [0, 1, 2, 3, 4, 5, 6]; // Sunday to Saturday
+  const days = [0, 1, 2, 3, 4, 5, 6]; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
   for (const day of days) {
     await prisma.businessHours.upsert({
       where: { id: `day-${day}` },
