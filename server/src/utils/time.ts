@@ -23,11 +23,15 @@ export const generateTimeSlots = async (
 ) => {
   // 1. Check admin availability first
   let dayOfWeek = new Date(date).getDay();
+  console.log('Checking availability for date:', date);
   console.log('Original JS day:', dayOfWeek); // Sunday = 0
   
   // Convert from JavaScript's Sunday-first (0-6) to match admin's Monday-first (0-6)
   dayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
   console.log('Converted day:', dayOfWeek); // Should match admin interface
+  console.log('Admin availability:', await prisma.AdminAvailability.findUnique({
+    where: { dayOfWeek_categoryId: { dayOfWeek, categoryId } }
+  }));
   
   const adminAvailability = await prisma.AdminAvailability.findUnique({
     where: {
