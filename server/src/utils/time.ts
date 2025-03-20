@@ -21,17 +21,9 @@ export const generateTimeSlots = async (
   categoryId: string,
   date: string
 ) => {
-  // 1. Check admin availability first
-  let dayOfWeek = new Date(date).getDay();
-  console.log('Checking availability for date:', date);
-  console.log('Original JS day:', dayOfWeek); // Sunday = 0
-  
-  // Convert from JavaScript's Sunday-first (0-6) to match admin's Monday-first (0-6)
-  dayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  console.log('Converted day:', dayOfWeek); // Should match admin interface
-  console.log('Admin availability:', await prisma.AdminAvailability.findUnique({
-    where: { dayOfWeek_categoryId: { dayOfWeek, categoryId } }
-  }));
+  // Get the day index directly - no conversion needed since our admin interface 
+  // and database are already using JavaScript's standard Sunday=0 format
+  const dayOfWeek = new Date(date).getDay();
   
   const adminAvailability = await prisma.AdminAvailability.findUnique({
     where: {
@@ -41,8 +33,6 @@ export const generateTimeSlots = async (
       }
     }
   });
-
-  console.log('Found availability:', adminAvailability);
 
   // If admin isn't available that day, return no slots
   if (!adminAvailability?.isAvailable) {
