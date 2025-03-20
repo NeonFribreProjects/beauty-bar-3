@@ -42,7 +42,7 @@ export function RegularHours({ category }: RegularHoursProps) {
         const existing = serverAvailability.find(d => d.dayOfWeek === dayOfWeek);
         return {
           dayOfWeek,
-          isAvailable: existing?.isAvailable ?? dayOfWeek >= DAYS_OF_WEEK.MONDAY && dayOfWeek <= DAYS_OF_WEEK.FRIDAY,
+          isAvailable: existing?.isAvailable ?? (dayOfWeek >= DAYS_OF_WEEK.MONDAY && dayOfWeek <= DAYS_OF_WEEK.FRIDAY),
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
           maxBookings: existing?.maxBookings ?? 8,
