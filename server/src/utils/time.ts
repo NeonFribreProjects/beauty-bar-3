@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { TimeSlot } from '../types';
+import { isDayOfWeek } from '../../../client/src/lib/constants';
 
 const prisma = new PrismaClient();
 
@@ -21,9 +22,11 @@ export const generateTimeSlots = async (
   categoryId: string,
   date: string
 ) => {
-  // Get the day index directly - no conversion needed since our admin interface 
-  // and database are already using JavaScript's standard Sunday=0 format
-  const dayOfWeek = new Date(date).getDay();
+  const rawDayOfWeek = new Date(date).getDay();
+  if (!isDayOfWeek(rawDayOfWeek)) {
+    throw new Error(`Invalid day of week: ${rawDayOfWeek}`);
+  }
+  const dayOfWeek = rawDayOfWeek;
   
   const adminAvailability = await prisma.AdminAvailability.findUnique({
     where: {

@@ -6,11 +6,10 @@ import { TimeField } from '@/components/ui/time-field';
 import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+import { DAYS_OF_WEEK, type DayOfWeek } from '@/lib/constants';
 
 interface DayAvailability {
-  dayOfWeek: number;
+  dayOfWeek: DayOfWeek;
   isAvailable: boolean;
   startTime: string;
   endTime: string;
@@ -37,10 +36,13 @@ export function RegularHours({ category }: RegularHoursProps) {
   React.useEffect(() => {
     if (serverAvailability) {
       const initialAvailability = DAYS_OF_WEEK.map((_, index) => {
-        const existing = serverAvailability.find(d => d.dayOfWeek === index);
+        // Use the actual day number as stored in the database
+        const dayNumber = index; // This now correctly maps to the DB's 0-6 Sunday-Saturday format
+        const existing = serverAvailability.find(d => d.dayOfWeek === dayNumber);
+        
         return {
-          dayOfWeek: index,
-          isAvailable: existing?.isAvailable ?? (index < 5), // Mon-Fri default to true
+          dayOfWeek: dayNumber as DayOfWeek,
+          isAvailable: existing?.isAvailable ?? (dayNumber > 0 && dayNumber < 6), // Mon-Fri default to true
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
           maxBookings: existing?.maxBookings ?? 8,
