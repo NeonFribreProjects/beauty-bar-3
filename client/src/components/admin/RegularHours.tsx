@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 interface DayAvailability {
   dayOfWeek: number;
@@ -40,7 +40,7 @@ export function RegularHours({ category }: RegularHoursProps) {
         const existing = serverAvailability.find(d => d.dayOfWeek === index);
         return {
           dayOfWeek: index,
-          isAvailable: existing?.isAvailable ?? (index > 0 && index < 6), // Mon-Fri default to true
+          isAvailable: existing?.isAvailable ?? (index < 5), // Mon-Fri default to true
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
           maxBookings: existing?.maxBookings ?? 8,
