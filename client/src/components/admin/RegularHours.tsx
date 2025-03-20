@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { DAY_NAMES, DAYS_OF_WEEK, DayOfWeek } from '@/lib/constants';
+import { AdminAvailability } from '@/lib/types';
 
 interface DayAvailability {
   dayOfWeek: number;
@@ -38,11 +39,15 @@ export function RegularHours({ category }: RegularHoursProps) {
   React.useEffect(() => {
     if (serverAvailability) {
       const initialAvailability = dayNames.map((_, index) => {
-        const dayOfWeek = index as DayOfWeek;
+        const dayOfWeek = index; // 0 = Sunday, 1 = Monday, etc.
         const existing = serverAvailability.find(d => d.dayOfWeek === dayOfWeek);
+        
         return {
           dayOfWeek,
-          isAvailable: existing?.isAvailable ?? (dayOfWeek >= DAYS_OF_WEEK.MONDAY && dayOfWeek <= DAYS_OF_WEEK.FRIDAY),
+          isAvailable: existing?.isAvailable ?? (
+            dayOfWeek >= DAYS_OF_WEEK.MONDAY && 
+            dayOfWeek <= DAYS_OF_WEEK.FRIDAY
+          ),
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
           maxBookings: existing?.maxBookings ?? 8,

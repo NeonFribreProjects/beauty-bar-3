@@ -1,4 +1,6 @@
 import { BusinessHours, BlockedDate, ServiceAvailability, Booking, TimeSlot, Service } from "@/types/booking";
+import { AdminAvailability } from '@/lib/types';
+import { convertToLocalDayIndex } from '@/utils/date';
 
 const API_BASE_URL = import.meta.env.DEV 
   ? '/api'  // Will be proxied in development
@@ -67,22 +69,13 @@ export const api = {
     return response.json();
   },
 
-  getBookings: async (date?: string) => {
-    const url = date 
-      ? `${API_BASE_URL}/bookings?date=${date}` 
-      : `${API_BASE_URL}/bookings`;
-      
-    console.log('Fetching bookings from:', url);
-    const response = await fetch(url);
-    
+  getBookings: async (): Promise<Booking[]> => {
+    const response = await fetch(`${API_BASE_URL}/bookings`);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch bookings');
     }
-    
-    const data = await response.json();
-    console.log('Received bookings:', data);
-    return data;
+    return response.json();
   },
 
   updateBookingStatus: async (bookingId: string, status: string) => {
@@ -113,10 +106,15 @@ export const api = {
     return response.json();
   },
 
-  getAvailability: async (category: string) => {
-    const response = await fetch(`${API_BASE_URL}/availability/${category}`);
-    if (!response.ok) throw new Error('Failed to fetch availability');
-    return response.json();
+  async getAvailability(categoryId: string): Promise<AdminAvailability[]> {
+    const response = await fetch(`/api/availability/${categoryId}`);
+    const data = await response.json();
+    
+    // Ensure day indices are correctly mapped
+    return data.map((availability: AdminAvailability) => ({
+      ...availability,
+      dayOfWeek: convertToLocalDayIndex(availability.dayOfWeek)
+    }));
   },
 
   updateAvailability: async (category: string, data: AdminAvailability) => {
