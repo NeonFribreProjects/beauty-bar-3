@@ -6,10 +6,11 @@ import { TimeField } from '@/components/ui/time-field';
 import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { DAYS_OF_WEEK, type DayOfWeek } from '@/lib/constants';
+
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 interface DayAvailability {
-  dayOfWeek: DayOfWeek;
+  dayOfWeek: number;
   isAvailable: boolean;
   startTime: string;
   endTime: string;
@@ -39,7 +40,7 @@ export function RegularHours({ category }: RegularHoursProps) {
         const existing = serverAvailability.find(d => d.dayOfWeek === index);
         return {
           dayOfWeek: index,
-          isAvailable: existing?.isAvailable ?? (index < 5), // Mon-Fri default to true
+          isAvailable: existing?.isAvailable ?? index < 5, // Mon-Fri default to true
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
           maxBookings: existing?.maxBookings ?? 8,

@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import type { TimeSlot } from '../types';
-import { isDayOfWeek } from '../../../client/src/lib/constants';
 
 const prisma = new PrismaClient();
 
@@ -22,13 +21,9 @@ export const generateTimeSlots = async (
   categoryId: string,
   date: string
 ) => {
-  const rawDayOfWeek = new Date(date).getDay();
-  if (!isDayOfWeek(rawDayOfWeek)) {
-    throw new Error(`Invalid day of week: ${rawDayOfWeek}`);
-  }
-  const dayOfWeek = rawDayOfWeek;
-  
-  const adminAvailability = await prisma.AdminAvailability.findUnique({
+  // 1. Check admin availability first
+  const dayOfWeek = new Date(date).getDay();
+  const adminAvailability = await prisma.adminAvailability.findUnique({
     where: {
       categoryId_dayOfWeek: {
         categoryId,
