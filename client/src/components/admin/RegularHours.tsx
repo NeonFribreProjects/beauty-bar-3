@@ -6,7 +6,8 @@ import { TimeField } from '@/components/ui/time-field';
 import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { DAYS_OF_WEEK, toBackendDayIndex } from '@/lib/date-utils';
+
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 interface DayAvailability {
   dayOfWeek: number;
@@ -79,10 +80,10 @@ export function RegularHours({ category }: RegularHoursProps) {
     }
   });
 
-  const handleDayUpdate = (index: number, updates: Partial<DayAvailability>) => {
-    setLocalAvailability(prev => prev.map((day, i) => 
-      i === index 
-        ? { ...day, ...updates, dayOfWeek: toBackendDayIndex(index) }
+  const handleDayUpdate = (dayIndex: number, updates: Partial<DayAvailability>) => {
+    setLocalAvailability(prev => prev.map(day => 
+      day.dayOfWeek === dayIndex 
+        ? { ...day, ...updates }
         : day
     ));
     setHasChanges(true);

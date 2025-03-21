@@ -28,41 +28,23 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
   const { serviceId } = req.params;
   const { date } = req.query;
 
+  if (!date || typeof date !== 'string') {
+    return res.status(400).json({ error: 'Date is required' });
+  }
+
   try {
-    if (!date || typeof date !== 'string') {
-      return res.status(400).json({ 
-        message: 'Date parameter is required and must be a string' 
-      });
-    }
-
-    if (!serviceId) {
-      return res.status(400).json({ 
-        message: 'Service ID is required' 
-      });
-    }
-
+    // Get service and its category
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
-      include: { 
-        category: true,
-        availability: true 
-      }
+      include: { category: true }
     });
 
     if (!service) {
-      return res.status(404).json({ 
-        message: `Service with ID ${serviceId} not found` 
-      });
+      return res.json([]);
     }
 
+    // Get admin availability for this category
     const dayOfWeek = new Date(date).getDay();
-    
-    if (!isValidDayIndex(dayOfWeek)) {
-      return res.status(400).json({ 
-        message: `Invalid day of week: ${dayOfWeek}` 
-      });
-    }
-
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {
@@ -73,7 +55,7 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
     });
 
     if (!adminAvailability) {
-      return res.json([]); // No availability set for this day
+      return res.json([]);
     }
 
     const existingBookings = await prisma.booking.findMany({
@@ -97,10 +79,7 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
     res.json(timeSlots);
   } catch (error) {
     console.error('Error generating time slots:', error);
-    res.status(500).json({
-      message: 'Failed to generate time slots',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.status(500).json({ error: 'Failed to get time slots' });
   }
 });
 
