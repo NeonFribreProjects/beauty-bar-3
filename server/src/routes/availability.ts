@@ -33,7 +33,6 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
   }
 
   try {
-    // Get service and its category
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
       include: { category: true }
@@ -43,7 +42,6 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
       return res.json([]);
     }
 
-    // Replace the direct getDay() call
     const dayOfWeek = adjustDayOfWeek(date);
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
@@ -126,7 +124,6 @@ router.put('/:category', async (req, res) => {
   const data = req.body;
 
   try {
-    // Get the category ID first
     const categoryRecord = await prisma.category.findFirst({
       where: { name: category }
     });
@@ -135,12 +132,16 @@ router.put('/:category', async (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    // Update or create availability
+    const dayOfWeek = Number(data.dayOfWeek);
+    if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
+      return res.status(400).json({ error: 'Invalid day of week' });
+    }
+
     const availability = await prisma.adminAvailability.upsert({
       where: {
         categoryId_dayOfWeek: {
           categoryId: categoryRecord.id,
-          dayOfWeek: data.dayOfWeek
+          dayOfWeek
         }
       },
       update: {
@@ -152,13 +153,16 @@ router.put('/:category', async (req, res) => {
       },
       create: {
         categoryId: categoryRecord.id,
-        ...data
+        dayOfWeek,
+        isAvailable: data.isAvailable,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        maxBookings: data.maxBookings,
+        breakTime: data.breakTime
       }
     });
 
-    // Invalidate any cached time slots
     await redis.del(`timeslots:${categoryRecord.id}:*`);
-
     res.json(availability);
   } catch (error) {
     console.error('Failed to update availability:', error);
