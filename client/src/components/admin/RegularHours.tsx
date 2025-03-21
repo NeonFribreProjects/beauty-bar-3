@@ -6,7 +6,7 @@ import { TimeField } from '@/components/ui/time-field';
 import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { DAYS_OF_WEEK, normalizeDayIndex } from '@/lib/constants';
+import { DAYS_OF_WEEK, toBackendDayIndex } from '@/lib/date-utils';
 
 interface DayAvailability {
   dayOfWeek: number;
@@ -36,9 +36,7 @@ export function RegularHours({ category }: RegularHoursProps) {
   React.useEffect(() => {
     if (serverAvailability) {
       const initialAvailability = DAYS_OF_WEEK.map((_, index) => {
-        const existing = serverAvailability.find(
-          d => normalizeDayIndex(d.dayOfWeek) === index
-        );
+        const existing = serverAvailability.find(d => d.dayOfWeek === index);
         return {
           dayOfWeek: index,
           isAvailable: existing?.isAvailable ?? index < 5, // Mon-Fri default to true
@@ -81,10 +79,10 @@ export function RegularHours({ category }: RegularHoursProps) {
     }
   });
 
-  const handleDayUpdate = (dayIndex: number, updates: Partial<DayAvailability>) => {
-    setLocalAvailability(prev => prev.map(day => 
-      day.dayOfWeek === dayIndex 
-        ? { ...day, ...updates }
+  const handleDayUpdate = (index: number, updates: Partial<DayAvailability>) => {
+    setLocalAvailability(prev => prev.map((day, i) => 
+      i === index 
+        ? { ...day, ...updates, dayOfWeek: toBackendDayIndex(index) }
         : day
     ));
     setHasChanges(true);
