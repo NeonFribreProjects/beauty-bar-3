@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { TimeSlot } from '../types';
-import { displayToStorageDay, convertJSDayToAppDay } from '../../client/src/lib/constants';
+import { normalizeDayIndex } from '../lib/constants';
 
 const prisma = new PrismaClient();
 
@@ -13,12 +13,6 @@ interface BlockedDate {
   affectedServices: string[];
 }
 
-// Add this new function for consistent day handling
-export function adjustDayOfWeek(date: string | Date): number {
-  const jsDay = new Date(date).getDay();
-  return convertJSDayToAppDay(jsDay); // Convert to our Monday-based system
-}
-
 export const generateTimeSlots = async (
   openTime: string,
   closeTime: string,
@@ -28,14 +22,13 @@ export const generateTimeSlots = async (
   categoryId: string,
   date: string
 ) => {
-  // Use the new adjustDayOfWeek function
-  const dayOfWeek = adjustDayOfWeek(date);
-  
+  // 1. Check admin availability first
+  const dayOfWeek = normalizeDayIndex(new Date(date).getDay());
   const adminAvailability = await prisma.adminAvailability.findUnique({
     where: {
       categoryId_dayOfWeek: {
         categoryId,
-        dayOfWeek // Now using Monday-based system
+        dayOfWeek
       }
     }
   });

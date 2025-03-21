@@ -95,7 +95,7 @@ model AdminAvailability {
   id          String   @id @default(cuid())
   categoryId  String   
   category    Category @relation(fields: [categoryId], references: [id])
-  dayOfWeek   Int     // 1-7 where 1=Monday, 7=Sunday
+  dayOfWeek   Int     // 0-6 for Sunday-Saturday
   startTime   String  // "HH:mm" format
   endTime     String  // "HH:mm" format
   isAvailable Boolean @default(true)

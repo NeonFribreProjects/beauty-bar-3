@@ -147,7 +147,7 @@ async function main() {
   }
 
   // Create business hours
-  const days = [1, 2, 3, 4, 5, 6, 7]; // 1 = Monday, ..., 7 = Sunday
+  const days = [0, 1, 2, 3, 4, 5, 6]; // Sunday to Saturday
   for (const day of days) {
     await prisma.businessHours.upsert({
       where: { id: `day-${day}` },
@@ -157,7 +157,7 @@ async function main() {
         dayOfWeek: day,
         openTime: '09:00',
         closeTime: '17:00',
-        isOpen: day <= 5 // Open Monday-Friday
+        isOpen: day !== 0 // Closed on Sundays
       }
     });
   }
