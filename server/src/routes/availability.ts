@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../index';
 import { authMiddleware } from '../middleware/auth';
 import { validateAvailability } from '../validators/availability';
-import { generateTimeSlots } from '../utils/time';
+import { generateTimeSlots, adjustDayOfWeek } from '../utils/time';
 import { redis } from '../utils/redis';
 
 const router = Router();
@@ -43,8 +43,8 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
       return res.json([]);
     }
 
-    // Get admin availability for this category
-    const dayOfWeek = new Date(date).getDay();
+    // Replace the direct getDay() call
+    const dayOfWeek = adjustDayOfWeek(date);
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {

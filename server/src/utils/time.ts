@@ -12,6 +12,12 @@ interface BlockedDate {
   affectedServices: string[];
 }
 
+function adjustDayOfWeek(date: string): number {
+  const dayOfWeek = new Date(date).getDay();
+  // JavaScript returns 0-6 (Sun-Sat), which matches our admin interface
+  return dayOfWeek;
+}
+
 export const generateTimeSlots = async (
   openTime: string,
   closeTime: string,
@@ -21,8 +27,10 @@ export const generateTimeSlots = async (
   categoryId: string,
   date: string
 ) => {
-  // 1. Check admin availability first
-  const dayOfWeek = new Date(date).getDay();
+  // Replace the direct getDay() call with our adjusted function
+  const dayOfWeek = adjustDayOfWeek(date);
+  
+  // Get admin availability for this day
   const adminAvailability = await prisma.adminAvailability.findUnique({
     where: {
       categoryId_dayOfWeek: {
