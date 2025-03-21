@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { TimeSlot } from '../types';
+import { displayToStorageDay } from '../../client/src/lib/constants';
 
 const prisma = new PrismaClient();
 
@@ -14,9 +15,8 @@ interface BlockedDate {
 
 // Add this new function for consistent day handling
 export function adjustDayOfWeek(date: string | Date): number {
-  const dayOfWeek = new Date(date).getDay();
-  // JavaScript uses 0-6 (Sun-Sat), we'll keep this consistent
-  return dayOfWeek;
+  const jsDay = new Date(date).getDay(); // 0-6, Sunday-first
+  return jsDay; // Keep using Sunday-first format in storage
 }
 
 export const generateTimeSlots = async (

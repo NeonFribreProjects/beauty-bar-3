@@ -6,7 +6,7 @@ import { TimeField } from '@/components/ui/time-field';
 import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { DAY_NAMES, DAYS_OF_WEEK, DayOfWeek } from '@/lib/constants';
+import { DAY_NAMES, displayToStorageDay, storageToDayDisplay } from '@/lib/constants';
 import { AdminAvailability } from '@/lib/types';
 
 interface DayAvailability {
@@ -27,8 +27,6 @@ export function RegularHours({ category }: RegularHoursProps) {
   const [localAvailability, setLocalAvailability] = React.useState<DayAvailability[]>([]);
   const [hasChanges, setHasChanges] = React.useState(false);
 
-  const dayNames = DAY_NAMES;
-
   // Load initial data
   const { data: serverAvailability, isLoading } = useQuery({
     queryKey: ['availability', category],
@@ -38,15 +36,16 @@ export function RegularHours({ category }: RegularHoursProps) {
   // Initialize local state when server data changes
   React.useEffect(() => {
     if (serverAvailability) {
-      const initialAvailability = dayNames.map((_, index) => {
-        const dayOfWeek = index; // 0 = Sunday, 1 = Monday, etc.
-        const existing = serverAvailability.find(d => d.dayOfWeek === dayOfWeek);
+      const initialAvailability = DAY_NAMES.map((_, displayIndex) => {
+        // Convert display index to storage index
+        const storageIndex = displayToStorageDay(displayIndex);
+        const existing = serverAvailability.find(d => d.dayOfWeek === storageIndex);
         
         return {
-          dayOfWeek,
+          dayOfWeek: storageIndex, // Store in Sunday-first format
           isAvailable: existing?.isAvailable ?? (
-            dayOfWeek >= DAYS_OF_WEEK.MONDAY && 
-            dayOfWeek <= DAYS_OF_WEEK.FRIDAY
+            // Default workdays (Monday-Friday) to available
+            displayIndex < 5 // First 5 days in display order
           ),
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
@@ -121,42 +120,44 @@ export function RegularHours({ category }: RegularHoursProps) {
       </div>
 
       <div className="grid gap-6">
-        {localAvailability.map((day, index) => (
-          <Card key={dayNames[index]}>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>{dayNames[index]}</CardTitle>
-                <Switch 
-                  checked={day.isAvailable} 
-                  onCheckedChange={(checked) => 
-                    handleDayUpdate(index, { isAvailable: checked })
-                  }
-                />
-              </div>
-              {day.isAvailable && (
-                <CardDescription>
-                  Available {day.startTime} - {day.endTime}
-                </CardDescription>
-              )}
-            </CardHeader>
-            {day.isAvailable && (
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <TimeField
-                    label="Start Time"
-                    value={day.startTime}
-                    onChange={(time) => handleDayUpdate(index, { startTime: time })}
-                  />
-                  <TimeField
-                    label="End Time"
-                    value={day.endTime}
-                    onChange={(time) => handleDayUpdate(index, { endTime: time })}
+        {localAvailability
+          .sort((a, b) => storageToDayDisplay(a.dayOfWeek) - storageToDayDisplay(b.dayOfWeek))
+          .map((day) => (
+            <Card key={DAY_NAMES[storageToDayDisplay(day.dayOfWeek)]}>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>{DAY_NAMES[storageToDayDisplay(day.dayOfWeek)]}</CardTitle>
+                  <Switch 
+                    checked={day.isAvailable} 
+                    onCheckedChange={(checked) => 
+                      handleDayUpdate(day.dayOfWeek, { isAvailable: checked })
+                    }
                   />
                 </div>
-              </CardContent>
-            )}
-          </Card>
-        ))}
+                {day.isAvailable && (
+                  <CardDescription>
+                    Available {day.startTime} - {day.endTime}
+                  </CardDescription>
+                )}
+              </CardHeader>
+              {day.isAvailable && (
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <TimeField
+                      label="Start Time"
+                      value={day.startTime}
+                      onChange={(time) => handleDayUpdate(day.dayOfWeek, { startTime: time })}
+                    />
+                    <TimeField
+                      label="End Time"
+                      value={day.endTime}
+                      onChange={(time) => handleDayUpdate(day.dayOfWeek, { endTime: time })}
+                    />
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          ))}
       </div>
     </div>
   );
