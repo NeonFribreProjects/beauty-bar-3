@@ -43,17 +43,23 @@ export const api = {
     return response.json();
   },
 
-  getAvailableTimeSlots: async (serviceId: string, date: string) => {
-    const response = await fetch(
-      `${API_BASE_URL}/availability/services/${serviceId}/time-slots?date=${date}`
-    );
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch time slots');
+  getAvailableTimeSlots: async (serviceId: string, date: string): Promise<TimeSlot[]> => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/services/${serviceId}/time-slots?date=${date}`
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Time slots fetch error:', errorData);
+        throw new Error(errorData.message || 'Failed to fetch time slots');
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Time slots fetch error:', error);
+      throw error;
     }
-    
-    return response.json();
   },
 
   // Admin Authentication
@@ -98,10 +104,21 @@ export const api = {
     return response.json();
   },
 
-  getService: async (id: string): Promise<Service> => {
-    const response = await fetch(`${API_BASE_URL}/services/${id}`);
-    if (!response.ok) throw new Error('Service not found');
-    return response.json();
+  getService: async (serviceId: string): Promise<Service> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/services/${serviceId}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Service fetch error:', errorData);
+        throw new Error(errorData.message || 'Failed to fetch service');
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Service fetch error:', error);
+      throw error;
+    }
   },
 
   getAvailability: async (category: string) => {

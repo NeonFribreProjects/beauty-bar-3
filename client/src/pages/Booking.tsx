@@ -71,17 +71,18 @@ const Booking = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: service, isLoading } = useQuery({
+  const { data: service, isLoading, error } = useQuery({
     queryKey: ['service', serviceId],
     queryFn: () => api.getService(serviceId),
+    retry: 1,
     onError: (error) => {
       console.error('Service fetch error:', error);
-      navigate('/');
       toast({
-        title: "Service not found",
-        description: "Please try selecting another service",
+        title: "Error loading service",
+        description: error.message || "Please try again later",
         variant: "destructive"
       });
+      navigate('/');
     }
   });
 
@@ -104,6 +105,22 @@ const Booking = () => {
   console.log('Current time slots:', timeSlots);
 
   console.log('Service data:', service);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <h2 className="text-xl font-semibold text-red-600 mb-4">
+          Error Loading Service
+        </h2>
+        <p className="text-gray-600 mb-4">
+          {error.message || "Please try again later"}
+        </p>
+        <Button onClick={() => navigate('/')}>
+          Return to Home
+        </Button>
+      </div>
+    );
+  }
 
   if (isLoading) return (
     <div className="flex justify-center items-center min-h-screen">
