@@ -6,7 +6,7 @@ import { TimeField } from '@/components/ui/time-field';
 import { api } from "@/lib/api";
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { DAY_NAMES, displayToStorageDay, storageToDayDisplay } from '@/lib/constants';
+import { DAY_NAMES, DAYS_OF_WEEK, convertJSDayToAppDay } from '@/lib/constants';
 import { AdminAvailability } from '@/lib/types';
 
 interface DayAvailability {
@@ -36,16 +36,16 @@ export function RegularHours({ category }: RegularHoursProps) {
   // Initialize local state when server data changes
   React.useEffect(() => {
     if (serverAvailability) {
-      const initialAvailability = DAY_NAMES.map((_, displayIndex) => {
-        // Convert display index to storage index
-        const storageIndex = displayToStorageDay(displayIndex);
-        const existing = serverAvailability.find(d => d.dayOfWeek === storageIndex);
+      // Initialize with Monday first (1-7)
+      const initialAvailability = DAY_NAMES.map((_, index) => {
+        const dayOfWeek = index + 1; // 1 = Monday, ..., 7 = Sunday
+        const existing = serverAvailability.find(d => d.dayOfWeek === dayOfWeek);
         
         return {
-          dayOfWeek: storageIndex, // Store in Sunday-first format
+          dayOfWeek,
           isAvailable: existing?.isAvailable ?? (
-            // Default workdays (Monday-Friday) to available
-            displayIndex < 5 // First 5 days in display order
+            // Default Mon-Fri (1-5) to available
+            dayOfWeek <= 5
           ),
           startTime: existing?.startTime ?? "09:00",
           endTime: existing?.endTime ?? "17:00",
@@ -121,12 +121,12 @@ export function RegularHours({ category }: RegularHoursProps) {
 
       <div className="grid gap-6">
         {localAvailability
-          .sort((a, b) => storageToDayDisplay(a.dayOfWeek) - storageToDayDisplay(b.dayOfWeek))
+          .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
           .map((day) => (
-            <Card key={DAY_NAMES[storageToDayDisplay(day.dayOfWeek)]}>
+            <Card key={DAY_NAMES[day.dayOfWeek - 1]}>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>{DAY_NAMES[storageToDayDisplay(day.dayOfWeek)]}</CardTitle>
+                  <CardTitle>{DAY_NAMES[day.dayOfWeek - 1]}</CardTitle>
                   <Switch 
                     checked={day.isAvailable} 
                     onCheckedChange={(checked) => 
