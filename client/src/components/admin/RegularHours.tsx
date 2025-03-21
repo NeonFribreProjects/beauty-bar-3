@@ -123,7 +123,7 @@ export function RegularHours({ category }: RegularHoursProps) {
         {localAvailability
           .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
           .map((day) => (
-            <Card key={DAY_NAMES[day.dayOfWeek - 1]}>
+            <Card key={`day-${day.dayOfWeek}`}>
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>{DAY_NAMES[day.dayOfWeek - 1]}</CardTitle>
