@@ -43,18 +43,24 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
       return res.json([]);
     }
 
+    // Fix: Use consistent timezone handling for day calculation
+    const bookingDate = new Date(date);
+    const dayName = bookingDate.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      timeZone: 'Europe/Paris' // Adjust to your timezone
+    });
+
     // Get admin availability for this category
-    const dayOfWeek = new Date(date).getDay();
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {
           categoryId: service.categoryId,
-          dayOfWeek
+          dayOfWeek: dayName // Now using the full day name
         }
       }
     });
 
-    if (!adminAvailability) {
+    if (!adminAvailability || !adminAvailability.isActive) {
       return res.json([]);
     }
 
