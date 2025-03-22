@@ -92,14 +92,15 @@ model Admin {
 }
 
 model AdminAvailability {
-  id         String   @id @default(cuid())
-  categoryId String
-  dayOfWeek  String   // Changed from Int to String
-  isActive   Boolean  @default(true)
-  startTime  String
-  endTime    String
-  breakTime  Int
-  category   Category @relation(fields: [categoryId], references: [id])
+  id          String   @id @default(cuid())
+  categoryId  String   
+  category    Category @relation(fields: [categoryId], references: [id])
+  dayOfWeek   Int     // 0-6 for Sunday-Saturday
+  startTime   String  // "HH:mm" format
+  endTime     String  // "HH:mm" format
+  isAvailable Boolean @default(true)
+  maxBookings Int     @default(8)
+  breakTime   Int     @default(15)
 
   @@unique([categoryId, dayOfWeek])
 } 

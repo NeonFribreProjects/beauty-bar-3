@@ -4,7 +4,6 @@ import { authMiddleware } from '../middleware/auth';
 import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
-import { DAYS_OF_WEEK } from '../lib/constants';
 
 const router = Router();
 
@@ -29,11 +28,12 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
   const { serviceId } = req.params;
   const { date } = req.query;
 
-  try {
-    if (!date || typeof date !== 'string') {
-      return res.status(400).json({ error: 'Date is required' });
-    }
+  if (!date || typeof date !== 'string') {
+    return res.status(400).json({ error: 'Date is required' });
+  }
 
+  try {
+    // Get service and its category
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
       include: { category: true }
@@ -43,20 +43,18 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
       return res.json([]);
     }
 
-    const jsDayIndex = new Date(date).getDay();
-    const dayName = DAYS_OF_WEEK[jsDayIndex];
-
+    // Get admin availability for this category
+    const dayOfWeek = new Date(date).getDay();
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {
           categoryId: service.categoryId,
-          dayOfWeek: dayName // Using string day name
+          dayOfWeek
         }
       }
     });
 
-    // Critical check for day availability
-    if (!adminAvailability || !adminAvailability.isActive) {
+    if (!adminAvailability) {
       return res.json([]);
     }
 
