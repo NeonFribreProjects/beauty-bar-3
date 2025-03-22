@@ -2,15 +2,19 @@ export const CATEGORIES = ['Featured', 'Eyelash', 'Waxing', 'Foot Care', 'Hand C
 
 export const DAYS_OF_WEEK = [
   'Sunday',
-  'Monday', 
-  'Tuesday', 
-  'Wednesday', 
-  'Thursday', 
-  'Friday', 
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
   'Saturday'
 ] as const;
 
-export type DayOfWeek = (typeof DAYS_OF_WEEK)[number];
+export type DayName = typeof DAYS_OF_WEEK[number];
+
+export const getDayName = (date: Date): DayName => {
+  return DAYS_OF_WEEK[date.getDay()];
+};
 
 export const getDayIndex = (date: Date): number => {
   return date.getDay();
