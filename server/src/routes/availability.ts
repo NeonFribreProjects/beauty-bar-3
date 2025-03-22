@@ -33,7 +33,6 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
   }
 
   try {
-    // Get service and its category
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
       include: { category: true }
@@ -43,31 +42,33 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
       return res.json([]);
     }
 
-    // Fix: Use consistent timezone handling for day calculation
-    const bookingDate = new Date(date);
-    const dayName = bookingDate.toLocaleDateString('en-US', { 
-      weekday: 'long',
-      timeZone: 'Europe/Paris' // Adjust to your timezone
-    });
+    // Fix: Ensure consistent date handling by using UTC
+    const requestDate = new Date(date);
+    requestDate.setUTCHours(0, 0, 0, 0);
+    
+    // Get day of week in local timezone
+    const dayOfWeek = requestDate.getUTCDay();
 
-    // Get admin availability for this category
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {
           categoryId: service.categoryId,
-          dayOfWeek: dayName // Now using the full day name
+          dayOfWeek
         }
       }
     });
 
-    if (!adminAvailability || !adminAvailability.isActive) {
+    if (!adminAvailability || !adminAvailability.isAvailable) {
       return res.json([]);
     }
 
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: date,
+        date: {
+          gte: requestDate,
+          lt: new Date(requestDate.getTime() + 24 * 60 * 60 * 1000)
+        },
         status: { not: 'cancelled' }
       }
     });
@@ -79,7 +80,7 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
       adminAvailability.breakTime,
       existingBookings,
       service.categoryId,
-      date
+      requestDate.toISOString()
     );
 
     res.json(timeSlots);

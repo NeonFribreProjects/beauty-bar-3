@@ -13,77 +13,52 @@ interface BlockedDate {
 }
 
 export const generateTimeSlots = async (
-  openTime: string,
-  closeTime: string,
-  serviceDuration: number,
+  startTime: string,
+  endTime: string,
+  duration: number,
   breakTime: number,
   existingBookings: any[],
   categoryId: string,
   date: string
 ) => {
-  // 1. Check admin availability first
-  const dayOfWeek = new Date(date).getDay();
-  const adminAvailability = await prisma.adminAvailability.findUnique({
-    where: {
-      categoryId_dayOfWeek: {
-        categoryId,
-        dayOfWeek
-      }
-    }
-  });
+  // Ensure date is handled in UTC
+  const slotDate = new Date(date);
+  slotDate.setUTCHours(0, 0, 0, 0);
 
-  // If admin isn't available that day, return no slots
-  if (!adminAvailability?.isAvailable) {
-    return [];
-  }
+  // Convert times to minutes since midnight
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
+  
+  const slots = [];
+  let currentMinutes = startMinutes;
 
-  // 2. Use admin's working hours
-  const actualOpenTime = adminAvailability.startTime;
-  const actualCloseTime = adminAvailability.endTime;
-
-  // 3. Check for blocked dates
-  const blockedDate = await prisma.blockedDate.findFirst({
-    where: {
-      date: date,
-      categoryId: categoryId
-    }
-  });
-
-  if (blockedDate && !blockedDate.startTime && !blockedDate.endTime) {
-    return [];
-  }
-
-  // 4. Generate slots based on service duration
-  const slots: TimeSlot[] = [];
-  let currentTime = parseTime(actualOpenTime);
-  const endTime = parseTime(actualCloseTime);
-
-  while (currentTime + serviceDuration <= endTime) {
-    const slotStart = formatTime(currentTime);
-    const slotEnd = formatTime(currentTime + serviceDuration);
-
-    const isBlocked = blockedDate && 
-      blockedDate.startTime && 
-      blockedDate.endTime &&
-      isTimeOverlapping(slotStart, slotEnd, blockedDate.startTime, blockedDate.endTime);
+  while (currentMinutes + duration <= endMinutes) {
+    const timeString = minutesToTime(currentMinutes);
+    const isBooked = existingBookings.some(booking => booking.time === timeString);
     
-    const hasBooking = existingBookings.some(booking =>
-      isTimeOverlapping(slotStart, slotEnd, booking.startTime, booking.endTime)
-    );
-
-    if (!isBlocked && !hasBooking) {
+    if (!isBooked) {
       slots.push({
-        startTime: slotStart,
-        endTime: slotEnd,
+        time: timeString,
         available: true
       });
     }
-
-    // Increment by service duration plus break time
-    currentTime += serviceDuration + breakTime;
+    
+    currentMinutes += duration + breakTime;
   }
 
   return slots;
+};
+
+// Helper functions
+const timeToMinutes = (time: string): number => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const minutesToTime = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 };
 
 function isTimeOverlapping(
