@@ -43,9 +43,16 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.json([]);
     }
 
-    // Parse date safely and get local day of week
+    // Create a new date object without modifying it
     const requestDate = new Date(date);
-    const dayOfWeek = requestDate.getDay(); // 0-6 for Sunday-Saturday
+    const dayOfWeek = requestDate.getDay();
+    
+    // Create separate date objects for the query
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
@@ -63,10 +70,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: {
-          gte: new Date(requestDate.setHours(0,0,0,0)),
-          lt: new Date(requestDate.setHours(23,59,59,999))
-        },
+        date: date, // Use the original date string as stored in DB
         status: { not: 'cancelled' }
       }
     });
@@ -82,7 +86,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     res.json(timeSlots);
 
   } catch (error) {
-    console.error('Error generating time slots:', error);
+    console.error('Detailed error:', error);
     res.status(500).json({ error: 'Failed to get time slots' });
   }
 });

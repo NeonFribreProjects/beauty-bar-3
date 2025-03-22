@@ -27,11 +27,13 @@ export const generateTimeSlots = (
   let currentTime = start;
   while (currentTime + duration <= end) {
     const timeString = minutesToTime(currentTime);
+    const endTimeString = minutesToTime(currentTime + duration);
     const isBooked = existingBookings.some(booking => booking.time === timeString);
     
     if (!isBooked) {
       slots.push({
-        time: timeString,
+        startTime: timeString,
+        endTime: endTimeString,
         available: true
       });
     }
