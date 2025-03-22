@@ -4,6 +4,7 @@ import { authMiddleware } from '../middleware/auth';
 import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
+import { Request, Response } from 'express';
 
 const router = Router();
 
@@ -24,7 +25,7 @@ router.get('/services/:serviceId', async (req, res) => {
 });
 
 // Get available time slots
-router.get('/services/:serviceId/time-slots', async (req, res) => {
+router.get('/services/:serviceId/time-slots', async (req: Request, res: Response) => {
   const { serviceId } = req.params;
   const { date } = req.query;
 
@@ -42,12 +43,9 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
       return res.json([]);
     }
 
-    // Fix: Ensure consistent date handling by using UTC
+    // Parse date safely and get local day of week
     const requestDate = new Date(date);
-    requestDate.setUTCHours(0, 0, 0, 0);
-    
-    // Get day of week in local timezone
-    const dayOfWeek = requestDate.getUTCDay();
+    const dayOfWeek = requestDate.getDay(); // 0-6 for Sunday-Saturday
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
@@ -66,24 +64,23 @@ router.get('/services/:serviceId/time-slots', async (req, res) => {
       where: {
         serviceId,
         date: {
-          gte: requestDate,
-          lt: new Date(requestDate.getTime() + 24 * 60 * 60 * 1000)
+          gte: new Date(requestDate.setHours(0,0,0,0)),
+          lt: new Date(requestDate.setHours(23,59,59,999))
         },
         status: { not: 'cancelled' }
       }
     });
 
-    const timeSlots = await generateTimeSlots(
+    const timeSlots = generateTimeSlots(
       adminAvailability.startTime,
       adminAvailability.endTime,
       Number(service.duration),
-      adminAvailability.breakTime,
-      existingBookings,
-      service.categoryId,
-      requestDate.toISOString()
+      adminAvailability.breakTime || 0,
+      existingBookings
     );
 
     res.json(timeSlots);
+
   } catch (error) {
     console.error('Error generating time slots:', error);
     res.status(500).json({ error: 'Failed to get time slots' });

@@ -12,28 +12,21 @@ interface BlockedDate {
   affectedServices: string[];
 }
 
-export const generateTimeSlots = async (
+export const generateTimeSlots = (
   startTime: string,
   endTime: string,
   duration: number,
   breakTime: number,
-  existingBookings: any[],
-  categoryId: string,
-  date: string
-) => {
-  // Ensure date is handled in UTC
-  const slotDate = new Date(date);
-  slotDate.setUTCHours(0, 0, 0, 0);
-
-  // Convert times to minutes since midnight
-  const startMinutes = timeToMinutes(startTime);
-  const endMinutes = timeToMinutes(endTime);
+  existingBookings: any[]
+): TimeSlot[] => {
+  const slots: TimeSlot[] = [];
   
-  const slots = [];
-  let currentMinutes = startMinutes;
-
-  while (currentMinutes + duration <= endMinutes) {
-    const timeString = minutesToTime(currentMinutes);
+  const start = timeToMinutes(startTime);
+  const end = timeToMinutes(endTime);
+  
+  let currentTime = start;
+  while (currentTime + duration <= end) {
+    const timeString = minutesToTime(currentTime);
     const isBooked = existingBookings.some(booking => booking.time === timeString);
     
     if (!isBooked) {
@@ -43,7 +36,7 @@ export const generateTimeSlots = async (
       });
     }
     
-    currentMinutes += duration + breakTime;
+    currentTime += duration + breakTime;
   }
 
   return slots;
