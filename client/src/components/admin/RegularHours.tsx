@@ -93,6 +93,22 @@ export function RegularHours({ category }: RegularHoursProps) {
     updateAvailability.mutate(localAvailability);
   };
 
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  const handleSaveAvailability = async (dayIndex: number, data: any) => {
+    try {
+      const dayName = dayNames[dayIndex];
+      await api.post('/admin/availability', {
+        ...data,
+        dayOfWeek: dayName,
+        categoryId: category
+      });
+      // ... rest of save logic
+    } catch (error) {
+      console.error('Error saving availability:', error);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
