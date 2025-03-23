@@ -1,15 +1,15 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
 import { authMiddleware } from '../middleware/auth';
 import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
-import { Request, Response } from 'express';
+import { DateTime } from 'luxon';
 
 const router = Router();
 
 // Get service availability
-router.get('/services/:serviceId', async (req, res) => {
+router.get('/services/:serviceId', async (req: Request, res: Response) => {
   const { serviceId } = req.params;
 
   const availability = await prisma.serviceAvailability.findUnique({
@@ -43,13 +43,13 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.json([]);
     }
 
-    // Create date object in Toronto timezone
-    const targetDate = new Date(date + 'T00:00:00-04:00'); // Force Eastern Time interpretation
-    const dayOfWeek = targetDate.getUTCDay(); // Get day in Toronto time (0-6)
+    const bizZone = 'America/Toronto';
+    const dt = DateTime.fromISO(date, { zone: bizZone });
+    const dayOfWeek = dt.weekday % 7; // Convert Luxon's 1-7 to 0-6
 
     console.log('[Date Debug]', {
       inputDate: date,
-      targetDate: targetDate.toISOString(),
+      parsedDate: dt.toISO(),
       dayOfWeek,
     });
 
@@ -98,7 +98,7 @@ router.put(
   '/services/:serviceId',
   authMiddleware,
   validateAvailability,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const { serviceId } = req.params;
     const availabilityData = req.body;
 
@@ -112,7 +112,7 @@ router.put(
   }
 );
 
-router.get('/:category', async (req, res) => {
+router.get('/:category', async (req: Request, res: Response) => {
   try {
     const category = await prisma.category.findFirst({
       where: { name: req.params.category }
@@ -131,7 +131,7 @@ router.get('/:category', async (req, res) => {
   }
 });
 
-router.put('/:category', async (req, res) => {
+router.put('/:category', async (req: Request, res: Response) => {
   const { category } = req.params;
   const data = req.body;
 
@@ -177,7 +177,7 @@ router.put('/:category', async (req, res) => {
 });
 
 // Update blocked time routes to use BlockedDate model
-router.get('/blocked/:category', async (req, res) => {
+router.get('/blocked/:category', async (req: Request, res: Response) => {
   try {
     const category = await prisma.category.findFirst({
       where: { name: req.params.category }
@@ -196,7 +196,7 @@ router.get('/blocked/:category', async (req, res) => {
   }
 });
 
-router.post('/blocked/:category', async (req, res) => {
+router.post('/blocked/:category', async (req: Request, res: Response) => {
   try {
     const category = await prisma.category.findFirst({
       where: { name: req.params.category }
@@ -222,7 +222,7 @@ router.post('/blocked/:category', async (req, res) => {
   }
 });
 
-router.delete('/blocked/:category/:id', async (req, res) => {
+router.delete('/blocked/:category/:id', async (req: Request, res: Response) => {
   try {
     await prisma.blockedDate.delete({
       where: { id: req.params.id }

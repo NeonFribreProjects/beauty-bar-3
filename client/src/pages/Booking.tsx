@@ -90,12 +90,12 @@ const Booking = () => {
     queryFn: () => {
       if (!selectedDate || !serviceId) return Promise.resolve([]);
       console.log('Fetching slots for:', {
-        date: selectedDate.toISOString().split('T')[0],
+        date: format(selectedDate, 'yyyy-MM-dd'),
         serviceId
       });
       return api.getAvailableTimeSlots(
         serviceId,
-        selectedDate.toISOString().split('T')[0]
+        format(selectedDate, 'yyyy-MM-dd')
       );
     },
     enabled: !!selectedDate && !!serviceId
@@ -138,7 +138,7 @@ const Booking = () => {
       
       const bookingData = {
         serviceId: service.id,
-        date: selectedDate.toISOString().split('T')[0],
+        date: format(selectedDate, 'yyyy-MM-dd'),
         startTime: selectedTime.startTime,
         endTime: selectedTime.endTime,
         customerName: customerDetails.name.trim(),
