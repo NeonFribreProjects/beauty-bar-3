@@ -31,6 +31,8 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
   const { serviceId } = req.params;
   const { date } = req.query;
 
+  console.log('Incoming request:', { serviceId, date });
+
   if (!date || typeof date !== 'string') {
     return res.status(400).json({ error: 'Date is required' });
   }
@@ -41,6 +43,8 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       include: { category: true }
     });
 
+    console.log('Service found:', service);
+
     if (!service) {
       return res.json([]);
     }
@@ -49,8 +53,10 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     const requestDate = DateTime.fromISO(date)
       .setZone(config.businessTimezone)
       .startOf('day');
+    console.log('Parsed date:', requestDate.toISO());
     
     const dayOfWeek = requestDate.weekday % 7; // Convert Luxon 1-7 to 0-6
+    console.log('Day of week:', dayOfWeek);
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
@@ -60,6 +66,8 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
         }
       }
     });
+
+    console.log('Admin availability:', adminAvailability);
 
     if (!adminAvailability || !adminAvailability.isAvailable) {
       return res.json([]);
@@ -85,7 +93,10 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
 
   } catch (error) {
     console.error('Detailed error:', error);
-    res.status(500).json({ error: 'Failed to get time slots' });
+    return res.status(500).json({ 
+      error: 'Failed to get time slots',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 
