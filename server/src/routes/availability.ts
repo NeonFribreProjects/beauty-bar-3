@@ -34,16 +34,15 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.status(400).json({ error: 'Date is required' });
     }
 
-    // Parse the date string and normalize to start of day in UTC
-    const requestDate = startOfDay(parseISO(date));
-    const dayOfWeek = requestDate.getDay();
+    // Create date objects for start and end of the requested day in UTC
+    const startDate = new Date(date);
+    startDate.setUTCHours(0, 0, 0, 0);
     
-    // Create separate date objects for the query
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    const endDate = new Date(date);
+    endDate.setUTCHours(23, 59, 59, 999);
+
+    // Get day of week in UTC to avoid timezone issues
+    const dayOfWeek = startDate.getUTCDay();
 
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
@@ -70,7 +69,10 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: date, // Use the original date string as stored in DB
+        date: {
+          gte: startDate.toISOString().split('T')[0],
+          lte: endDate.toISOString().split('T')[0]
+        },
         status: { not: 'cancelled' }
       }
     });
