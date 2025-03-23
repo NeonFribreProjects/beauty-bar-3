@@ -5,6 +5,7 @@ import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
 import { Request, Response } from 'express';
+import { startOfDay } from 'date-fns';
 
 const router = Router();
 
@@ -25,26 +26,13 @@ router.get('/services/:serviceId', async (req, res) => {
 });
 
 // Get available time slots
-router.get('/services/:serviceId/time-slots', async (req: Request, res: Response) => {
-  const { serviceId } = req.params;
-  const { date } = req.query;
-
-  if (!date || typeof date !== 'string') {
-    return res.status(400).json({ error: 'Date is required' });
-  }
-
+router.get('/services/:serviceId/time-slots', async (req, res) => {
   try {
-    const service = await prisma.service.findUnique({
-      where: { id: serviceId },
-      include: { category: true }
-    });
+    const { serviceId } = req.params;
+    const { date } = req.query;
 
-    if (!service) {
-      return res.json([]);
-    }
-
-    // Create a new date object without modifying it
-    const requestDate = new Date(date);
+    // Parse the date string and get start of day to avoid timezone issues
+    const requestDate = startOfDay(new Date(date as string));
     const dayOfWeek = requestDate.getDay();
     
     // Create separate date objects for the query
@@ -53,6 +41,15 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
+
+    const service = await prisma.service.findUnique({
+      where: { id: serviceId },
+      include: { category: true }
+    });
+
+    if (!service) {
+      return res.json([]);
+    }
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
@@ -86,8 +83,8 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     res.json(timeSlots);
 
   } catch (error) {
-    console.error('Detailed error:', error);
-    res.status(500).json({ error: 'Failed to get time slots' });
+    console.error('Error generating time slots:', error);
+    res.status(500).json({ error: 'Failed to generate time slots' });
   }
 });
 
