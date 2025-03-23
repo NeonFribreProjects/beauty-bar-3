@@ -47,45 +47,22 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.json([]);
     }
 
-    // Convert the date to Toronto timezone for consistency
-    const torontoDate = new Date(date);
-    // Explicitly set timezone to Toronto (ET)
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Toronto',
-      weekday: 'long',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric'
-    });
+    // Create date in Toronto timezone
+    const torontoTz = 'America/Toronto';
+    const dateInToronto = new Date(date + 'T12:00:00');  // Use noon to avoid DST issues
+    const utcDay = dateInToronto.getUTCDay();
     
-    // Get the day of week in Toronto timezone
-    const dayOfWeek = formatter.formatToParts(torontoDate)
-      .find(part => part.type === 'weekday')?.value;
-    
-    const dayMap = {
-      'Sunday': 0,
-      'Monday': 1,
-      'Tuesday': 2,
-      'Wednesday': 3,
-      'Thursday': 4,
-      'Friday': 5,
-      'Saturday': 6
-    };
-
-    const dayNumber = dayMap[dayOfWeek ?? 'Sunday'];
-
     console.log(`[Date Processing]`, {
       originalDate: date,
-      torontoDate: formatter.format(torontoDate),
-      dayOfWeek: dayOfWeek,
-      dayNumber: dayNumber
+      dateInToronto: dateInToronto.toISOString(),
+      utcDay
     });
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {
           categoryId: service.categoryId,
-          dayOfWeek: dayNumber
+          dayOfWeek: utcDay
         }
       }
     });
@@ -93,14 +70,14 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     console.log(`[Admin Availability]`, adminAvailability);
 
     if (!adminAvailability || !adminAvailability.isAvailable) {
-      console.log(`[No Availability] Day ${dayOfWeek} not available`);
+      console.log(`[No Availability] Day ${utcDay} not available`);
       return res.json([]);
     }
 
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: formatter.format(torontoDate),
+        date: date,
         status: { not: 'cancelled' }
       }
     });
