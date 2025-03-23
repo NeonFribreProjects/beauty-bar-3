@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { TimeSlot } from '../types';
+import { DateTime } from 'luxon';
 
 const prisma = new PrismaClient();
 
@@ -28,7 +29,14 @@ export const generateTimeSlots = (
   while (currentTime + duration <= end) {
     const timeString = minutesToTime(currentTime);
     const endTimeString = minutesToTime(currentTime + duration);
-    const isBooked = existingBookings.some(booking => booking.time === timeString);
+    
+    // Check if slot overlaps with any existing booking
+    const isBooked = existingBookings.some(booking => {
+      const bookingStart = timeToMinutes(booking.startTime);
+      const bookingEnd = timeToMinutes(booking.endTime);
+      return (currentTime >= bookingStart && currentTime < bookingEnd) ||
+             (currentTime + duration > bookingStart && currentTime + duration <= bookingEnd);
+    });
     
     if (!isBooked) {
       slots.push({

@@ -49,13 +49,12 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.json([]);
     }
 
-    // Convert input date to Toronto timezone for day calculation
-    const requestDate = DateTime.fromISO(date)
-      .setZone(config.businessTimezone)
-      .startOf('day');
+    // Parse date in Toronto timezone
+    const requestDate = DateTime.fromISO(date, { zone: 'America/Toronto' });
     console.log('Parsed date:', requestDate.toISO());
     
-    const dayOfWeek = requestDate.weekday % 7; // Convert Luxon 1-7 to 0-6
+    // Get day of week (0-6, Sunday-Saturday)
+    const dayOfWeek = requestDate.weekday === 7 ? 0 : requestDate.weekday;
     console.log('Day of week:', dayOfWeek);
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
@@ -89,7 +88,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       existingBookings
     );
 
-    res.json(timeSlots);
+    return res.json(timeSlots);
 
   } catch (error) {
     console.error('Detailed error:', error);
