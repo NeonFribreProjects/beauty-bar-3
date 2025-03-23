@@ -5,6 +5,7 @@ import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
 import { Request, Response } from 'express';
+import { businessTimezone, formatForClient } from '../config/timezone';
 
 const router = Router();
 
@@ -43,16 +44,10 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.json([]);
     }
 
-    // Create a new date object without modifying it
+    // Convert input date to business timezone for day calculation
     const requestDate = new Date(date);
-    const dayOfWeek = requestDate.getDay();
-    
-    // Create separate date objects for the query
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    const businessDate = new Date(requestDate.toLocaleString('en-US', { timeZone: businessTimezone }));
+    const dayOfWeek = businessDate.getDay();
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
@@ -70,7 +65,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: date, // Use the original date string as stored in DB
+        date,
         status: { not: 'cancelled' }
       }
     });
@@ -80,10 +75,18 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       adminAvailability.endTime,
       Number(service.duration),
       adminAvailability.breakTime || 0,
-      existingBookings
+      existingBookings,
+      businessTimezone
     );
 
-    res.json(timeSlots);
+    // Format times for client
+    const formattedSlots = timeSlots.map(slot => ({
+      ...slot,
+      startTime: formatForClient(new Date(`${date}T${slot.startTime}`)),
+      endTime: formatForClient(new Date(`${date}T${slot.endTime}`))
+    }));
+
+    res.json(formattedSlots);
 
   } catch (error) {
     console.error('Detailed error:', error);
