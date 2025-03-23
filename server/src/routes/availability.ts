@@ -1,11 +1,10 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
 import { authMiddleware } from '../middleware/auth';
 import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
-import { Request, Response } from 'express';
-import { startOfDay } from 'date-fns';
+import { startOfDay, parseISO } from 'date-fns';
 
 const router = Router();
 
@@ -26,13 +25,17 @@ router.get('/services/:serviceId', async (req, res) => {
 });
 
 // Get available time slots
-router.get('/services/:serviceId/time-slots', async (req, res) => {
+router.get('/services/:serviceId/time-slots', async (req: Request, res: Response) => {
   try {
     const { serviceId } = req.params;
     const { date } = req.query;
 
-    // Parse the date string and get start of day to avoid timezone issues
-    const requestDate = startOfDay(new Date(date as string));
+    if (!date || typeof date !== 'string') {
+      return res.status(400).json({ error: 'Date is required' });
+    }
+
+    // Parse the date string and normalize to start of day in UTC
+    const requestDate = startOfDay(parseISO(date));
     const dayOfWeek = requestDate.getDay();
     
     // Create separate date objects for the query
