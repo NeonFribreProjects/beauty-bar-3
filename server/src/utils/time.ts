@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import type { TimeSlot } from '../types';
-import { DateTime } from 'luxon';
 
 const prisma = new PrismaClient();
 
@@ -20,37 +19,48 @@ export const generateTimeSlots = (
   breakTime: number,
   existingBookings: any[]
 ): TimeSlot[] => {
-  try {
-    const slots: TimeSlot[] = [];
-    
-    const start = timeToMinutes(startTime);
-    const end = timeToMinutes(endTime);
-    
-    let currentTime = start;
-    while (currentTime + duration <= end) {
-      const timeString = minutesToTime(currentTime);
-      const endTimeString = minutesToTime(currentTime + duration);
-      
-      const isBooked = existingBookings.some(booking => 
-        booking.startTime === timeString
-      );
-      
-      if (!isBooked) {
-        slots.push({
-          startTime: timeString,
-          endTime: endTimeString,
-          available: true
-        });
-      }
-      
-      currentTime += duration + breakTime;
-    }
+  console.log('[generateTimeSlots] Input:', {
+    startTime,
+    endTime,
+    duration,
+    breakTime,
+    existingBookingsCount: existingBookings.length
+  });
 
-    return slots;
-  } catch (error) {
-    console.error('Error generating time slots:', error);
-    return [];
+  const slots: TimeSlot[] = [];
+  
+  const start = timeToMinutes(startTime);
+  const end = timeToMinutes(endTime);
+  
+  console.log('[Time Conversion]', {
+    startMinutes: start,
+    endMinutes: end
+  });
+
+  let currentTime = start;
+  while (currentTime + duration <= end) {
+    const timeString = minutesToTime(currentTime);
+    const endTimeString = minutesToTime(currentTime + duration);
+    const isBooked = existingBookings.some(booking => booking.time === timeString);
+    
+    if (!isBooked) {
+      slots.push({
+        startTime: timeString,
+        endTime: endTimeString,
+        available: true
+      });
+    }
+    
+    currentTime += duration + breakTime;
   }
+
+  console.log('[Generated Slots]', {
+    totalSlots: slots.length,
+    firstSlot: slots[0],
+    lastSlot: slots[slots.length - 1]
+  });
+
+  return slots;
 };
 
 // Helper functions

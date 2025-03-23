@@ -5,8 +5,6 @@ import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
 import { Request, Response } from 'express';
-import { DateTime } from 'luxon';
-import { config } from '../config/timezone';
 
 const router = Router();
 
@@ -31,29 +29,37 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
   const { serviceId } = req.params;
   const { date } = req.query;
 
-  try {
-    // Add detailed logging
-    console.log('1. Request received:', { serviceId, date });
+  console.log(`[Availability Request] serviceId: ${serviceId}, date: ${date}`);
 
+  if (!date || typeof date !== 'string') {
+    console.error('[Validation Error] Invalid date parameter:', date);
+    return res.status(400).json({ error: 'Date is required' });
+  }
+
+  try {
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
       include: { category: true }
     });
 
-    console.log('2. Service found:', service);
-
     if (!service) {
+      console.log(`[Service Not Found] serviceId: ${serviceId}`);
       return res.json([]);
     }
 
-    // Simplify date handling
-    const requestDate = new Date(date as string);
-    const dayOfWeek = requestDate.getDay(); // 0-6, Sunday-Saturday
+    console.log(`[Service Found]`, {
+      serviceId,
+      categoryId: service.categoryId,
+      duration: service.duration
+    });
 
-    console.log('3. Date processing:', { 
-      requestDate, 
-      dayOfWeek,
-      dateString: requestDate.toISOString() 
+    const requestDate = new Date(date);
+    const dayOfWeek = requestDate.getDay();
+
+    console.log(`[Date Processing]`, {
+      originalDate: date,
+      parsedDate: requestDate.toISOString(),
+      dayOfWeek
     });
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
@@ -65,21 +71,22 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       }
     });
 
-    console.log('4. Admin availability:', adminAvailability);
+    console.log(`[Admin Availability]`, adminAvailability);
 
     if (!adminAvailability || !adminAvailability.isAvailable) {
+      console.log(`[No Availability] Day ${dayOfWeek} not available`);
       return res.json([]);
     }
 
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: requestDate.toISOString().split('T')[0],
+        date: date,
         status: { not: 'cancelled' }
       }
     });
 
-    console.log('5. Existing bookings:', existingBookings);
+    console.log(`[Existing Bookings]`, existingBookings);
 
     const timeSlots = generateTimeSlots(
       adminAvailability.startTime,
@@ -89,22 +96,20 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       existingBookings
     );
 
-    console.log('6. Generated time slots:', timeSlots);
+    console.log(`[Generated Time Slots] Count: ${timeSlots.length}`);
 
     return res.json(timeSlots);
 
   } catch (error) {
-    // Detailed error logging
-    console.error('Full error details:', {
-      message: error instanceof Error ? error.message : String(error),
+    console.error('[Detailed Error]', {
+      error,
       stack: error instanceof Error ? error.stack : undefined,
-      date,
-      serviceId
+      serviceId,
+      date
     });
-
     return res.status(500).json({ 
       error: 'Failed to get time slots',
-      details: error instanceof Error ? error.message : String(error)
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
