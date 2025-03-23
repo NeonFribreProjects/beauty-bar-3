@@ -96,8 +96,8 @@ model AdminAvailability {
   categoryId  String   
   category    Category @relation(fields: [categoryId], references: [id])
   dayOfWeek   Int     // 0-6 for Sunday-Saturday
-  startTime   String  // "HH:mm" format
-  endTime     String  // "HH:mm" format
+  startTime   String  // Now stored as TIMESTAMPTZ
+  endTime     String  // Now stored as TIMESTAMPTZ
   isAvailable Boolean @default(true)
   maxBookings Int     @default(8)
   breakTime   Int     @default(15)

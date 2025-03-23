@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import type { TimeSlot } from '../types';
-import { businessTimezone } from '../config/timezone';
 
 const prisma = new PrismaClient();
 
@@ -18,8 +17,7 @@ export const generateTimeSlots = (
   endTime: string,
   duration: number,
   breakTime: number,
-  existingBookings: any[],
-  timezone: string = businessTimezone
+  existingBookings: any[]
 ): TimeSlot[] => {
   const slots: TimeSlot[] = [];
   
@@ -30,12 +28,7 @@ export const generateTimeSlots = (
   while (currentTime + duration <= end) {
     const timeString = minutesToTime(currentTime);
     const endTimeString = minutesToTime(currentTime + duration);
-    
-    // Convert booking times to business timezone for comparison
-    const isBooked = existingBookings.some(booking => {
-      const bookingTime = new Date(booking.time).toLocaleString('en-US', { timeZone: timezone });
-      return bookingTime === timeString;
-    });
+    const isBooked = existingBookings.some(booking => booking.time === timeString);
     
     if (!isBooked) {
       slots.push({

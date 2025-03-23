@@ -5,7 +5,8 @@ import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
 import { Request, Response } from 'express';
-import { businessTimezone, formatForClient } from '../config/timezone';
+import { DateTime } from 'luxon';
+import { config } from '../config/timezone';
 
 const router = Router();
 
@@ -44,10 +45,12 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.json([]);
     }
 
-    // Convert input date to business timezone for day calculation
-    const requestDate = new Date(date);
-    const businessDate = new Date(requestDate.toLocaleString('en-US', { timeZone: businessTimezone }));
-    const dayOfWeek = businessDate.getDay();
+    // Convert input date to Toronto timezone for day calculation
+    const requestDate = DateTime.fromISO(date)
+      .setZone(config.businessTimezone)
+      .startOf('day');
+    
+    const dayOfWeek = requestDate.weekday % 7; // Convert Luxon 1-7 to 0-6
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
@@ -65,7 +68,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date,
+        date: requestDate.toFormat('yyyy-MM-dd'),
         status: { not: 'cancelled' }
       }
     });
@@ -75,18 +78,10 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       adminAvailability.endTime,
       Number(service.duration),
       adminAvailability.breakTime || 0,
-      existingBookings,
-      businessTimezone
+      existingBookings
     );
 
-    // Format times for client
-    const formattedSlots = timeSlots.map(slot => ({
-      ...slot,
-      startTime: formatForClient(new Date(`${date}T${slot.startTime}`)),
-      endTime: formatForClient(new Date(`${date}T${slot.endTime}`))
-    }));
-
-    res.json(formattedSlots);
+    res.json(timeSlots);
 
   } catch (error) {
     console.error('Detailed error:', error);
