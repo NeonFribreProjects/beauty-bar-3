@@ -1,0 +1,135 @@
+Attaching to beauty-bar-3_app_1, beauty-bar-3_redis_1, beauty-bar-3_db_1
+[33mdb_1     |[0m The files belonging to this database system will be owned by user "postgres".
+[33mdb_1     |[0m This user must also own the server process.
+[33mdb_1     |[0m 
+[33mdb_1     |[0m The database cluster will be initialized with locale "en_US.utf8".
+[33mdb_1     |[0m The default database encoding has accordingly been set to "UTF8".
+[33mdb_1     |[0m The default text search configuration will be set to "english".
+[33mdb_1     |[0m 
+[33mdb_1     |[0m Data page checksums are disabled.
+[33mdb_1     |[0m 
+[33mdb_1     |[0m fixing permissions on existing directory /var/lib/postgresql/data ... ok
+[33mdb_1     |[0m creating subdirectories ... ok
+[33mdb_1     |[0m selecting dynamic shared memory implementation ... posix
+[33mdb_1     |[0m selecting default max_connections ... 100
+[33mdb_1     |[0m selecting default shared_buffers ... 128MB
+[33mdb_1     |[0m selecting default time zone ... UTC
+[33mdb_1     |[0m creating configuration files ... ok
+[33mdb_1     |[0m running bootstrap script ... ok
+[33mdb_1     |[0m sh: locale: not found
+[33mdb_1     |[0m 2025-03-15 01:20:05.343 UTC [34] WARNING:  no usable system locales were found
+[33mdb_1     |[0m performing post-bootstrap initialization ... ok
+[33mdb_1     |[0m initdb: warning: enabling "trust" authentication for local connections
+[33mdb_1     |[0m You can change this by editing pg_hba.conf or using the option -A, or
+[33mdb_1     |[0m --auth-local and --auth-host, the next time you run initdb.
+[33mdb_1     |[0m syncing data to disk ... ok
+[33mdb_1     |[0m 
+[33mdb_1     |[0m 
+[33mdb_1     |[0m Success. You can now start the database server using:
+[33mdb_1     |[0m 
+[33mdb_1     |[0m     pg_ctl -D /var/lib/postgresql/data -l logfile start
+[33mdb_1     |[0m 
+[33mdb_1     |[0m waiting for server to start....2025-03-15 01:20:06.240 UTC [40] LOG:  starting PostgreSQL 14.16 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+[33mdb_1     |[0m 2025-03-15 01:20:06.242 UTC [40] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+[33mdb_1     |[0m 2025-03-15 01:20:06.247 UTC [41] LOG:  database system was shut down at 2025-03-15 01:20:06 UTC
+[33mdb_1     |[0m 2025-03-15 01:20:06.254 UTC [40] LOG:  database system is ready to accept connections
+[33mdb_1     |[0m  done
+[33mdb_1     |[0m server started
+[33mdb_1     |[0m CREATE DATABASE
+[33mdb_1     |[0m 
+[33mdb_1     |[0m 
+[33mdb_1     |[0m /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+[33mdb_1     |[0m 
+[33mdb_1     |[0m waiting for server to shut down...2025-03-15 01:20:06.440 UTC [40] LOG:  received fast shutdown request
+[33mdb_1     |[0m .2025-03-15 01:20:06.441 UTC [40] LOG:  aborting any active transactions
+[33mdb_1     |[0m 2025-03-15 01:20:06.445 UTC [40] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+[33mdb_1     |[0m 2025-03-15 01:20:06.447 UTC [42] LOG:  shutting down
+[33mdb_1     |[0m 2025-03-15 01:20:06.471 UTC [40] LOG:  database system is shut down
+[33mdb_1     |[0m  done
+[33mdb_1     |[0m server stopped
+[33mdb_1     |[0m 
+[33mdb_1     |[0m PostgreSQL init process complete; ready for start up.
+[33mdb_1     |[0m 
+[33mdb_1     |[0m 2025-03-15 01:20:06.564 UTC [1] LOG:  starting PostgreSQL 14.16 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+[33mdb_1     |[0m 2025-03-15 01:20:06.564 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+[33mdb_1     |[0m 2025-03-15 01:20:06.564 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+[33mdb_1     |[0m 2025-03-15 01:20:06.567 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+[33mdb_1     |[0m 2025-03-15 01:20:06.574 UTC [55] LOG:  database system was shut down at 2025-03-15 01:20:06 UTC
+[33mdb_1     |[0m 2025-03-15 01:20:06.580 UTC [1] LOG:  database system is ready to accept connections
+[33mdb_1     |[0m 2025-03-15 01:21:36.362 UTC [1] LOG:  received fast shutdown request
+[33mdb_1     |[0m 2025-03-15 01:21:36.364 UTC [1] LOG:  aborting any active transactions
+[33mdb_1     |[0m 2025-03-15 01:21:36.371 UTC [1] LOG:  background worker "logical replication launcher" (PID 61) exited with exit code 1
+[33mdb_1     |[0m 2025-03-15 01:21:36.373 UTC [56] LOG:  shutting down
+[33mdb_1     |[0m 2025-03-15 01:21:36.392 UTC [1] LOG:  database system is shut down
+[36mapp_1    |[0m Waiting for database...
+[36mapp_1    |[0m Running migrations...
+[36mapp_1    |[0m prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+[36mapp_1    |[0m Please manually install OpenSSL and try installing Prisma again.
+[36mapp_1    |[0m prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+[36mapp_1    |[0m Please manually install OpenSSL and try installing Prisma again.
+[36mapp_1    |[0m Environment variables loaded from .env
+[36mapp_1    |[0m Prisma schema loaded from prisma/schema.prisma
+[36mapp_1    |[0m Datasource "db": PostgreSQL database "beauty_bar", schema "public" at "db:5432"
+[36mapp_1    |[0m 
+[36mapp_1    |[0m Error: Could not parse schema engine response: SyntaxError: Unexpected token E in JSON at position 0
+[36mapp_1    |[0m Starting development servers...
+[36mapp_1    |[0m 
+[36mapp_1    |[0m > dev
+[36mapp_1    |[0m > concurrently "npm run dev:client" "npm run dev:server"
+[36mapp_1    |[0m 
+[36mapp_1    |[0m [0] 
+[36mapp_1    |[0m [0] > dev:client
+[36mapp_1    |[0m [0] > npm run dev --workspace=client
+[36mapp_1    |[0m [0] 
+[36mapp_1    |[0m [1] 
+[36mapp_1    |[0m [1] > dev:server
+[36mapp_1    |[0m [1] > npm run dev --workspace=server
+[36mapp_1    |[0m [1] 
+[36mapp_1    |[0m [0] 
+[36mapp_1    |[0m [0] > @beauty-bar/client@0.1.0 dev
+[36mapp_1    |[0m [0] > vite
+[36mapp_1    |[0m [0] 
+[36mapp_1    |[0m [1] 
+[36mapp_1    |[0m [1] > beauty-bar-server@1.0.0 dev
+[36mapp_1    |[0m [1] > ts-node-dev --respawn --transpile-only --poll --ignore-watch node_modules src/index.ts
+[36mapp_1    |[0m [1] 
+[36mapp_1    |[0m [0] 
+[36mapp_1    |[0m [0]   VITE v5.4.14  ready in 303 ms
+[36mapp_1    |[0m [0] 
+[36mapp_1    |[0m [0]   ➜  Local:   http://localhost:5173/
+[36mapp_1    |[0m [0]   ➜  Network: http://172.20.0.4:5173/
+[36mapp_1    |[0m [1] [INFO] 01:20:11 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.7.3)
+[36mapp_1    |[0m [1] Server running on http://localhost:3000
+[36mapp_1    |[0m [1] Redis connection error: Error: connect ECONNREFUSED 127.0.0.1:6379
+[36mapp_1    |[0m [1]     at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16) {
+[36mapp_1    |[0m [1]   errno: -111,
+[36mapp_1    |[0m [1]   code: 'ECONNREFUSED',
+[36mapp_1    |[0m [1]   syscall: 'connect',
+[36mapp_1    |[0m [1]   address: '127.0.0.1',
+[36mapp_1    |[0m [1]   port: 6379
+[36mapp_1    |[0m [1] }
+[36mapp_1    |[0m [1] prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+[36mapp_1    |[0m [1] Please manually install OpenSSL and try installing Prisma again.
+[36mapp_1    |[0m [1] PrismaClientInitializationError: Unable to require(`/app/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node`).
+[36mapp_1    |[0m [1] The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+[36mapp_1    |[0m [1] 
+[36mapp_1    |[0m [1] Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node)
+[36mapp_1    |[0m [1]     at Object.loadLibrary (/app/node_modules/@prisma/client/runtime/library.js:111:10243)
+[36mapp_1    |[0m [1]     at _r.loadEngine (/app/node_modules/@prisma/client/runtime/library.js:112:448)
+[36mapp_1    |[0m [1]     at _r.instantiateLibrary (/app/node_modules/@prisma/client/runtime/library.js:111:12599)
+[36mapp_1    |[0m [1] [ERROR] 01:20:14 PrismaClientInitializationError: Unable to require(`/app/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node`).
+[36mapp_1    |[0m [1] The Prisma engines do not seem to be compatible with your system. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
+[36mapp_1    |[0m [1] 
+[36mapp_1    |[0m [1] Details: Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node)
+[32mredis_1  |[0m 1:C 15 Mar 2025 01:20:04.561 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+[32mredis_1  |[0m 1:C 15 Mar 2025 01:20:04.562 * Redis version=7.4.2, bits=64, commit=00000000, modified=0, pid=1, just started
+[32mredis_1  |[0m 1:C 15 Mar 2025 01:20:04.562 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+[32mredis_1  |[0m 1:M 15 Mar 2025 01:20:04.562 * monotonic clock: POSIX clock_gettime
+[32mredis_1  |[0m 1:M 15 Mar 2025 01:20:04.564 * Running mode=standalone, port=6379.
+[32mredis_1  |[0m 1:M 15 Mar 2025 01:20:04.565 * Server initialized
+[32mredis_1  |[0m 1:M 15 Mar 2025 01:20:04.565 * Ready to accept connections tcp
+[32mredis_1  |[0m 1:signal-handler (1742001696) Received SIGTERM scheduling shutdown...
+[32mredis_1  |[0m 1:M 15 Mar 2025 01:21:36.427 * User requested shutdown...
+[32mredis_1  |[0m 1:M 15 Mar 2025 01:21:36.427 * Saving the final RDB snapshot before exiting.
+[32mredis_1  |[0m 1:M 15 Mar 2025 01:21:36.431 * DB saved on disk
+[32mredis_1  |[0m 1:M 15 Mar 2025 01:21:36.431 # Redis is now ready to exit, bye bye...
