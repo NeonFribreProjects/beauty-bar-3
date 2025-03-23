@@ -47,26 +47,45 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.json([]);
     }
 
-    console.log(`[Service Found]`, {
-      serviceId,
-      categoryId: service.categoryId,
-      duration: service.duration
+    // Convert the date to Toronto timezone for consistency
+    const torontoDate = new Date(date);
+    // Explicitly set timezone to Toronto (ET)
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Toronto',
+      weekday: 'numeric',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
     });
+    
+    // Get the day of week in Toronto timezone
+    const dayOfWeek = formatter.formatToParts(torontoDate)
+      .find(part => part.type === 'weekday')?.value;
+    
+    const dayMap = {
+      'Sunday': 0,
+      'Monday': 1,
+      'Tuesday': 2,
+      'Wednesday': 3,
+      'Thursday': 4,
+      'Friday': 5,
+      'Saturday': 6
+    };
 
-    const requestDate = new Date(date);
-    const dayOfWeek = requestDate.getDay();
+    const dayNumber = dayMap[dayOfWeek] ?? 0;
 
     console.log(`[Date Processing]`, {
       originalDate: date,
-      parsedDate: requestDate.toISOString(),
-      dayOfWeek
+      torontoDate: formatter.format(torontoDate),
+      dayOfWeek: dayOfWeek,
+      dayNumber: dayNumber
     });
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {
           categoryId: service.categoryId,
-          dayOfWeek
+          dayOfWeek: dayNumber
         }
       }
     });
@@ -81,7 +100,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: date,
+        date: formatter.format(torontoDate),
         status: { not: 'cancelled' }
       }
     });
