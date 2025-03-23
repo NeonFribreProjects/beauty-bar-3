@@ -29,10 +29,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
   const { serviceId } = req.params;
   const { date } = req.query;
 
-  console.log(`[Availability Request] serviceId: ${serviceId}, date: ${date}`);
-
   if (!date || typeof date !== 'string') {
-    console.error('[Validation Error] Invalid date parameter:', date);
     return res.status(400).json({ error: 'Date is required' });
   }
 
@@ -43,46 +40,39 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     });
 
     if (!service) {
-      console.log(`[Service Not Found] serviceId: ${serviceId}`);
       return res.json([]);
     }
 
-    // Create date in Toronto timezone
-    const torontoTz = 'America/Toronto';
-    const dateInToronto = new Date(date + 'T12:00:00');  // Use noon to avoid DST issues
-    const utcDay = dateInToronto.getUTCDay();
-    
-    console.log(`[Date Processing]`, {
-      originalDate: date,
-      dateInToronto: dateInToronto.toISOString(),
-      utcDay
+    // Create date object in Toronto timezone
+    const targetDate = new Date(date + 'T00:00:00-04:00'); // Force Eastern Time interpretation
+    const dayOfWeek = targetDate.getUTCDay(); // Get day in Toronto time (0-6)
+
+    console.log('[Date Debug]', {
+      inputDate: date,
+      targetDate: targetDate.toISOString(),
+      dayOfWeek,
     });
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {
           categoryId: service.categoryId,
-          dayOfWeek: utcDay
+          dayOfWeek // This matches our DB integers exactly
         }
       }
     });
 
-    console.log(`[Admin Availability]`, adminAvailability);
-
     if (!adminAvailability || !adminAvailability.isAvailable) {
-      console.log(`[No Availability] Day ${utcDay} not available`);
       return res.json([]);
     }
 
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: date,
+        date, // Keep original date string format
         status: { not: 'cancelled' }
       }
     });
-
-    console.log(`[Existing Bookings]`, existingBookings);
 
     const timeSlots = generateTimeSlots(
       adminAvailability.startTime,
@@ -92,17 +82,10 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       existingBookings
     );
 
-    console.log(`[Generated Time Slots] Count: ${timeSlots.length}`);
-
     return res.json(timeSlots);
 
   } catch (error) {
-    console.error('[Detailed Error]', {
-      error,
-      stack: error instanceof Error ? error.stack : undefined,
-      serviceId,
-      date
-    });
+    console.error('[Error]', { error, date, serviceId });
     return res.status(500).json({ 
       error: 'Failed to get time slots',
       details: error instanceof Error ? error.message : 'Unknown error'
