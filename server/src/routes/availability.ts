@@ -52,7 +52,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     // Explicitly set timezone to Toronto (ET)
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: 'America/Toronto',
-      weekday: 'numeric',
+      weekday: 'long',
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
@@ -72,7 +72,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       'Saturday': 6
     };
 
-    const dayNumber = dayMap[dayOfWeek] ?? 0;
+    const dayNumber = dayMap[dayOfWeek ?? 'Sunday'];
 
     console.log(`[Date Processing]`, {
       originalDate: date,
