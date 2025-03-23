@@ -20,36 +20,37 @@ export const generateTimeSlots = (
   breakTime: number,
   existingBookings: any[]
 ): TimeSlot[] => {
-  const slots: TimeSlot[] = [];
-  
-  const start = timeToMinutes(startTime);
-  const end = timeToMinutes(endTime);
-  
-  let currentTime = start;
-  while (currentTime + duration <= end) {
-    const timeString = minutesToTime(currentTime);
-    const endTimeString = minutesToTime(currentTime + duration);
+  try {
+    const slots: TimeSlot[] = [];
     
-    // Check if slot overlaps with any existing booking
-    const isBooked = existingBookings.some(booking => {
-      const bookingStart = timeToMinutes(booking.startTime);
-      const bookingEnd = timeToMinutes(booking.endTime);
-      return (currentTime >= bookingStart && currentTime < bookingEnd) ||
-             (currentTime + duration > bookingStart && currentTime + duration <= bookingEnd);
-    });
+    const start = timeToMinutes(startTime);
+    const end = timeToMinutes(endTime);
     
-    if (!isBooked) {
-      slots.push({
-        startTime: timeString,
-        endTime: endTimeString,
-        available: true
-      });
+    let currentTime = start;
+    while (currentTime + duration <= end) {
+      const timeString = minutesToTime(currentTime);
+      const endTimeString = minutesToTime(currentTime + duration);
+      
+      const isBooked = existingBookings.some(booking => 
+        booking.startTime === timeString
+      );
+      
+      if (!isBooked) {
+        slots.push({
+          startTime: timeString,
+          endTime: endTimeString,
+          available: true
+        });
+      }
+      
+      currentTime += duration + breakTime;
     }
-    
-    currentTime += duration + breakTime;
-  }
 
-  return slots;
+    return slots;
+  } catch (error) {
+    console.error('Error generating time slots:', error);
+    return [];
+  }
 };
 
 // Helper functions

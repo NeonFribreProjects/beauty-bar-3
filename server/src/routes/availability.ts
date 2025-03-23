@@ -31,31 +31,30 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
   const { serviceId } = req.params;
   const { date } = req.query;
 
-  console.log('Incoming request:', { serviceId, date });
-
-  if (!date || typeof date !== 'string') {
-    return res.status(400).json({ error: 'Date is required' });
-  }
-
   try {
+    // Add detailed logging
+    console.log('1. Request received:', { serviceId, date });
+
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
       include: { category: true }
     });
 
-    console.log('Service found:', service);
+    console.log('2. Service found:', service);
 
     if (!service) {
       return res.json([]);
     }
 
-    // Parse date in Toronto timezone
-    const requestDate = DateTime.fromISO(date, { zone: 'America/Toronto' });
-    console.log('Parsed date:', requestDate.toISO());
-    
-    // Get day of week (0-6, Sunday-Saturday)
-    const dayOfWeek = requestDate.weekday === 7 ? 0 : requestDate.weekday;
-    console.log('Day of week:', dayOfWeek);
+    // Simplify date handling
+    const requestDate = new Date(date as string);
+    const dayOfWeek = requestDate.getDay(); // 0-6, Sunday-Saturday
+
+    console.log('3. Date processing:', { 
+      requestDate, 
+      dayOfWeek,
+      dateString: requestDate.toISOString() 
+    });
 
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
@@ -66,7 +65,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       }
     });
 
-    console.log('Admin availability:', adminAvailability);
+    console.log('4. Admin availability:', adminAvailability);
 
     if (!adminAvailability || !adminAvailability.isAvailable) {
       return res.json([]);
@@ -75,10 +74,12 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
-        date: requestDate.toFormat('yyyy-MM-dd'),
+        date: requestDate.toISOString().split('T')[0],
         status: { not: 'cancelled' }
       }
     });
+
+    console.log('5. Existing bookings:', existingBookings);
 
     const timeSlots = generateTimeSlots(
       adminAvailability.startTime,
@@ -88,10 +89,19 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       existingBookings
     );
 
+    console.log('6. Generated time slots:', timeSlots);
+
     return res.json(timeSlots);
 
   } catch (error) {
-    console.error('Detailed error:', error);
+    // Detailed error logging
+    console.error('Full error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      date,
+      serviceId
+    });
+
     return res.status(500).json({ 
       error: 'Failed to get time slots',
       details: error instanceof Error ? error.message : String(error)
