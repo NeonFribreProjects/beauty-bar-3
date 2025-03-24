@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { DateTime } from 'luxon';
 import type { TimeSlot } from '../types';
-
-const prisma = new PrismaClient();
 
 interface BlockedDate {
   id: string;
@@ -17,35 +15,35 @@ export const generateTimeSlots = (
   endTime: string,
   duration: number,
   breakTime: number,
-  existingBookings: any[]
+  existingBookings: any[],
+  date: string
 ): TimeSlot[] => {
-  console.log('[generateTimeSlots] Input:', {
-    startTime,
-    endTime,
-    duration,
-    breakTime,
-    existingBookingsCount: existingBookings.length
-  });
-
+  const bizZone = 'America/Toronto';
   const slots: TimeSlot[] = [];
   
   const start = timeToMinutes(startTime);
   const end = timeToMinutes(endTime);
   
-  console.log('[Time Conversion]', {
-    startMinutes: start,
-    endMinutes: end
-  });
-
   let currentTime = start;
   while (currentTime + duration <= end) {
-    const timeString = minutesToTime(currentTime);
+    const startTimeString = minutesToTime(currentTime);
     const endTimeString = minutesToTime(currentTime + duration);
-    const isBooked = existingBookings.some(booking => booking.time === timeString);
+
+    // Convert to DateTime for comparison
+    const slotStart = DateTime.fromFormat(
+      `${date} ${startTimeString}`,
+      'yyyy-MM-dd HH:mm',
+      { zone: bizZone }
+    );
+
+    const isBooked = existingBookings.some(booking => {
+      const bookingStart = DateTime.fromJSDate(booking.appointmentStart, { zone: bizZone });
+      return bookingStart.equals(slotStart);
+    });
     
     if (!isBooked) {
       slots.push({
-        startTime: timeString,
+        startTime: startTimeString,
         endTime: endTimeString,
         available: true
       });
@@ -53,12 +51,6 @@ export const generateTimeSlots = (
     
     currentTime += duration + breakTime;
   }
-
-  console.log('[Generated Slots]', {
-    totalSlots: slots.length,
-    firstSlot: slots[0],
-    lastSlot: slots[slots.length - 1]
-  });
 
   return slots;
 };

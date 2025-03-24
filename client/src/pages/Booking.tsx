@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { Calendar } from "../components/ui/calendar";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
@@ -10,13 +9,24 @@ import { cn } from "../lib/utils";
 import { api } from "../lib/api";
 import { TimeSlot } from "../types/booking";
 import { services } from "../data/services";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { Spinner } from "../components/ui/spinner";
 import { toast } from "../components/ui/use-toast";
 import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { format } from "date-fns";
 import { formatDuration } from "../lib/utils";
+import { UseQueryOptions, QueryFunction } from '@tanstack/react-query';
+import type { Service as ServiceType } from '../types/booking';
+
+interface Service {
+  id: string;
+  name: string;
+  duration: number;
+  price: number;
+  categoryId: string;
+  description?: string;
+}
 
 const validateBookingFields = (
   selectedDate: Date | undefined,
@@ -71,11 +81,17 @@ const Booking = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: service, isLoading } = useQuery({
+  const { data: service, isLoading } = useQuery<Service>({
     queryKey: ['service', serviceId],
-    queryFn: () => api.getService(serviceId),
-    onError: (error) => {
-      console.error('Service fetch error:', error);
+    queryFn: async () => {
+      const response = await api.getService(serviceId);
+      if (!response) throw new Error('Service not found');
+      return response;
+    }
+  });
+
+  useEffect(() => {
+    if (!isLoading && !service) {
       navigate('/');
       toast({
         title: "Service not found",
@@ -83,19 +99,19 @@ const Booking = () => {
         variant: "destructive"
       });
     }
-  });
+  }, [service, isLoading, navigate]);
 
   const { data: timeSlots, isLoading: timeSlotsLoading } = useQuery({
     queryKey: ['timeSlots', serviceId, selectedDate],
     queryFn: () => {
       if (!selectedDate || !serviceId) return Promise.resolve([]);
       console.log('Fetching slots for:', {
-        date: selectedDate.toISOString().split('T')[0],
+        date: format(selectedDate, 'yyyy-MM-dd'),
         serviceId
       });
       return api.getAvailableTimeSlots(
         serviceId,
-        selectedDate.toISOString().split('T')[0]
+        format(selectedDate, 'yyyy-MM-dd')
       );
     },
     enabled: !!selectedDate && !!serviceId
@@ -137,10 +153,10 @@ const Booking = () => {
       setIsSubmitting(true);
       
       const bookingData = {
-        serviceId: service.id,
-        date: selectedDate.toISOString().split('T')[0],
-        startTime: selectedTime.startTime,
-        endTime: selectedTime.endTime,
+        serviceId: service?.id,
+        date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
+        startTime: selectedTime?.startTime ?? '',
+        endTime: selectedTime?.endTime ?? '',
         customerName: customerDetails.name.trim(),
         customerEmail: customerDetails.email.trim(),
         customerPhone: customerDetails.phone.trim()

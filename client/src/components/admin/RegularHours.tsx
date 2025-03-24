@@ -18,6 +18,13 @@ interface DayAvailability {
   breakTime: number;
 }
 
+interface AdminAvailability {
+  dayOfWeek: number;
+  isAvailable: boolean;
+  startTime: string;
+  endTime: string;
+}
+
 interface RegularHoursProps {
   category: string;
 }
@@ -37,7 +44,7 @@ export function RegularHours({ category }: RegularHoursProps) {
   React.useEffect(() => {
     if (serverAvailability) {
       const initialAvailability = DAYS_OF_WEEK.map((_, index) => {
-        const existing = serverAvailability.find(d => d.dayOfWeek === index);
+        const existing = serverAvailability.find((d: AdminAvailability) => d.dayOfWeek === index);
         return {
           dayOfWeek: index,
           isAvailable: existing?.isAvailable ?? index < 5, // Mon-Fri default to true
@@ -56,7 +63,7 @@ export function RegularHours({ category }: RegularHoursProps) {
       // Only update days that have changed
       const promises = updates
         .filter(update => {
-          const current = serverAvailability?.find(s => s.dayOfWeek === update.dayOfWeek);
+          const current = serverAvailability?.find((s: AdminAvailability) => s.dayOfWeek === update.dayOfWeek);
           return !current || JSON.stringify(current) !== JSON.stringify(update);
         })
         .map(update => api.updateAvailability(category, update));
@@ -64,7 +71,7 @@ export function RegularHours({ category }: RegularHoursProps) {
       await Promise.all(promises);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['availability', category]);
+      queryClient.invalidateQueries({ queryKey: ['availability', category] });
       toast({ 
         title: "Success",
         description: `Regular hours updated for ${category}`
@@ -98,10 +105,16 @@ export function RegularHours({ category }: RegularHoursProps) {
   const handleSaveAvailability = async (dayIndex: number, data: any) => {
     try {
       const dayName = dayNames[dayIndex];
-      await api.post('/admin/availability', {
-        ...data,
-        dayOfWeek: dayName,
-        categoryId: category
+      const response = await fetch('/api/admin/availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...data,
+          dayOfWeek: dayName,
+          categoryId: category
+        })
       });
       // ... rest of save logic
     } catch (error) {
@@ -137,9 +150,7 @@ export function RegularHours({ category }: RegularHoursProps) {
                 <CardTitle>{DAYS_OF_WEEK[index]}</CardTitle>
                 <Switch 
                   checked={day.isAvailable} 
-                  onCheckedChange={(checked) => 
-                    handleDayUpdate(index, { isAvailable: checked })
-                  }
+                  onCheckedChange={(checked: boolean) => handleDayUpdate(index, { isAvailable: checked })}
                 />
               </div>
               {day.isAvailable && (
