@@ -1,4 +1,15 @@
 import { BusinessHours, BlockedDate, ServiceAvailability, Booking, TimeSlot, Service } from "@/types/booking";
+import type { AdminAvailability } from "@/types/admin";
+import { DateTime } from "luxon";
+
+declare global {
+  interface ImportMeta {
+    env: {
+      DEV: boolean;
+      // Add other env variables as needed
+    };
+  }
+}
 
 const API_BASE_URL = import.meta.env.DEV 
   ? '/api'  // Will be proxied in development
@@ -20,7 +31,7 @@ export const api = {
   },
 
   // Bookings
-  createBooking: async (booking: {
+  createBooking: async (bookingData: {
     serviceId: string;
     date: string;
     startTime: string;
@@ -29,17 +40,36 @@ export const api = {
     customerEmail: string;
     customerPhone: string;
   }): Promise<Booking> => {
-    const response = await fetch(`${API_BASE_URL}/bookings`, {
+    // Convert date and times to DateTime
+    const bizZone = 'America/Toronto';
+    const startDateTime = DateTime.fromFormat(
+      `${bookingData.date} ${bookingData.startTime}`,
+      'yyyy-MM-dd HH:mm',
+      { zone: bizZone }
+    ).toUTC();
+
+    const endDateTime = DateTime.fromFormat(
+      `${bookingData.date} ${bookingData.endTime}`,
+      'yyyy-MM-dd HH:mm',
+      { zone: bizZone }
+    ).toUTC();
+
+    const response = await fetch('/api/availability/bookings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(booking)
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ...bookingData,
+        appointmentStart: startDateTime.toJSDate(),
+        appointmentEnd: endDateTime.toJSDate()
+      })
     });
-
+    
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create booking');
+      throw new Error('Failed to create booking');
     }
-
+    
     return response.json();
   },
 

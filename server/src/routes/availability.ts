@@ -39,25 +39,18 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       include: { category: true }
     });
 
-    if (!service) {
-      return res.json([]);
-    }
+    if (!service) return res.json([]);
 
     const bizZone = 'America/Toronto';
     const dt = DateTime.fromISO(date, { zone: bizZone });
     const dayOfWeek = dt.weekday % 7; // Convert Luxon's 1-7 to 0-6
 
-    console.log('[Date Debug]', {
-      inputDate: date,
-      parsedDate: dt.toISO(),
-      dayOfWeek,
-    });
-
+    // Get admin availability for this day
     const adminAvailability = await prisma.adminAvailability.findUnique({
       where: {
         categoryId_dayOfWeek: {
           categoryId: service.categoryId,
-          dayOfWeek // This matches our DB integers exactly
+          dayOfWeek
         }
       }
     });
@@ -66,6 +59,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       return res.json([]);
     }
 
+    // Check existing bookings using DateTime fields
     const existingBookings = await prisma.booking.findMany({
       where: {
         serviceId,
@@ -83,7 +77,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       Number(service.duration),
       adminAvailability.breakTime || 0,
       existingBookings,
-      date // Pass the date for proper DateTime comparison
+      date
     );
 
     return res.json(timeSlots);

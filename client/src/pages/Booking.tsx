@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { formatDuration } from "../lib/utils";
 import { UseQueryOptions, QueryFunction } from '@tanstack/react-query';
 import type { Service as ServiceType } from '../types/booking';
+import { DateTime } from 'luxon';
 
 interface Service {
   id: string;
@@ -81,12 +82,12 @@ const Booking = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: service, isLoading } = useQuery<Service>({
+  const { data: service, isLoading } = useQuery<Service, Error>({
     queryKey: ['service', serviceId],
     queryFn: async () => {
       const response = await api.getService(serviceId);
       if (!response) throw new Error('Service not found');
-      return response;
+      return response as Service;
     }
   });
 
@@ -101,14 +102,10 @@ const Booking = () => {
     }
   }, [service, isLoading, navigate]);
 
-  const { data: timeSlots, isLoading: timeSlotsLoading } = useQuery({
+  const { data: timeSlots, isLoading: timeSlotsLoading } = useQuery<TimeSlot[]>({
     queryKey: ['timeSlots', serviceId, selectedDate],
-    queryFn: () => {
-      if (!selectedDate || !serviceId) return Promise.resolve([]);
-      console.log('Fetching slots for:', {
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        serviceId
-      });
+    queryFn: async () => {
+      if (!selectedDate || !serviceId) return [];
       return api.getAvailableTimeSlots(
         serviceId,
         format(selectedDate, 'yyyy-MM-dd')
@@ -153,7 +150,7 @@ const Booking = () => {
       setIsSubmitting(true);
       
       const bookingData = {
-        serviceId: service?.id,
+        serviceId: service.id,
         date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
         startTime: selectedTime?.startTime ?? '',
         endTime: selectedTime?.endTime ?? '',

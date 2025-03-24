@@ -29,12 +29,18 @@ export interface BlockedDate {
 export interface Booking {
   id: string;
   serviceId: string;
-  service: Service;
-  customerId: string;
-  date: string;        // "2024-03-20"
-  startTime: string;   // "14:30"
-  endTime: string;     // "15:30"
+  appointmentStart: Date;
+  appointmentEnd: Date;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
   status: 'pending' | 'confirmed' | 'cancelled';
+  service?: {
+    name: string;
+    category?: {
+      name: string;
+    };
+  };
 }
 
 export interface TimeSlot {
@@ -53,9 +59,6 @@ export interface Service {
   name: string;
   duration: number;
   price: number;
-  discount?: string;
-  category: {
-    id: string;
-    name: string;
-  };
+  categoryId: string;
+  description?: string;
 } 
