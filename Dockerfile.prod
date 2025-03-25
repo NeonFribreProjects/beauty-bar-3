@@ -9,6 +9,7 @@ FROM node:18-alpine AS backend-builder
 WORKDIR /app/backend
 COPY server/package*.json ./
 RUN npm install
+RUN npm install @types/node --save-dev
 COPY server/ .
 RUN npx prisma generate
 RUN npx tsc -p prisma/tsconfig.prisma.json
