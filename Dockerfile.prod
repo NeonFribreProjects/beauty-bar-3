@@ -13,25 +13,23 @@ COPY server/ .
 RUN npx prisma generate
 RUN npx tsc -p prisma/tsconfig.prisma.json
 RUN npm run build
+# Compile seed file with specific config
+RUN npx tsc -p prisma/tsconfig.seed.json
 
 FROM node:18-alpine
-WORKDIR /app
+WORKDIR /app/server
 RUN apk add --no-cache openssl
 
-# Copy built files with correct structure
-COPY --from=frontend-builder /app/frontend/dist ./client/dist
-COPY --from=backend-builder /app/backend/dist ./server/dist
-COPY --from=backend-builder /app/backend/package*.json ./server/
-COPY --from=backend-builder /app/backend/prisma ./server/prisma
+# Update copy paths to match new structure
+COPY --from=frontend-builder /app/frontend/dist ../client/dist
+COPY --from=backend-builder /app/backend/dist ./dist
+COPY --from=backend-builder /app/backend/package*.json ./
+COPY --from=backend-builder /app/backend/prisma ./prisma
+COPY --from=backend-builder /app/backend/prisma/dist/seed.js ./prisma/
 
-# Install production dependencies in correct location
-WORKDIR /app/server
+# Install in correct location
 RUN npm install --production
 RUN npx prisma generate
-
-# Compile seed file
-RUN npm install typescript --save-dev
-RUN npx tsc prisma/seed.ts --outDir prisma
 
 WORKDIR /app
 COPY docker-entrypoint.sh /usr/local/bin/

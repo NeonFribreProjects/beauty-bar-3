@@ -6,8 +6,14 @@
     "outDir": "dist",
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "types": ["node"],
+    "typeRoots": ["../node_modules/@types/node"]
   },
   "include": ["seed.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "../node_modules",
+    "**/*.test.ts"
+  ]
 } 
