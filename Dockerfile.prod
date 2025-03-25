@@ -11,7 +11,7 @@ COPY server/package*.json ./
 RUN npm install
 COPY server/ .
 RUN npx prisma generate
-RUN npx tsc -p prisma/tsconfig.json
+RUN npx tsc -p prisma/tsconfig.prisma.json
 RUN npm run build
 
 FROM node:18-alpine
