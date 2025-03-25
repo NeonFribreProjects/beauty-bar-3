@@ -1,6 +1,8 @@
 import nodemailer from 'nodemailer';
+import { DateTime } from 'luxon';
 
 const ADMIN_EMAIL = 'jeffreycolonel212@gmail.com';
+const TIMEZONE = 'America/Toronto';
 
 // Create reusable transporter with better configuration
 const transporter = nodemailer.createTransport({
@@ -42,23 +44,38 @@ const sendMailWithRetry = async (mailOptions: any, retries = 3) => {
   }
 };
 
+interface BookingEmailData {
+  customerEmail: string;
+  customerName: string;
+  serviceName: string;
+  appointmentStart: Date; // Changed from date + startTime
+  appointmentEnd: Date;   // Changed from endTime
+  customerPhone: string;
+}
+
+interface StatusUpdateEmailData {
+  customerEmail: string;
+  customerName: string;
+  serviceName: string;
+  appointmentStart: Date;
+  appointmentEnd: Date;
+  status: string;
+}
+
 export const sendBookingConfirmation = async ({
   customerEmail,
   customerName,
   serviceName,
-  date,
-  startTime,
-  endTime,
+  appointmentStart,
+  appointmentEnd,
   customerPhone
-}: {
-  customerEmail: string;
-  customerName: string;
-  serviceName: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  customerPhone: string;
-}) => {
+}: BookingEmailData) => {
+  // Format dates for email
+  const startTime = DateTime.fromJSDate(appointmentStart)
+    .setZone(TIMEZONE);
+  const endTime = DateTime.fromJSDate(appointmentEnd)
+    .setZone(TIMEZONE);     
+
   // Customer email
   const customerMailOptions = {
     from: process.env.EMAIL_USER,
@@ -70,8 +87,8 @@ export const sendBookingConfirmation = async ({
       <p>Your appointment has been confirmed:</p>
       <ul>
         <li>Service: ${serviceName}</li>
-        <li>Date: ${date}</li>
-        <li>Time: ${startTime} - ${endTime}</li>
+        <li>Date: ${startTime.toFormat('EEEE, MMMM d, yyyy')}</li>
+        <li>Time: ${startTime.toFormat('h:mm a')} - ${endTime.toFormat('h:mm a')}</li>
       </ul>
       <p>Thank you for choosing Medina Esthetique!</p>
     `
@@ -87,8 +104,8 @@ export const sendBookingConfirmation = async ({
       <h2>Booking Details:</h2>
       <ul>
         <li>Service: ${serviceName}</li>
-        <li>Date: ${date}</li>
-        <li>Time: ${startTime} - ${endTime}</li>
+        <li>Date: ${startTime.toFormat('EEEE, MMMM d, yyyy')}</li>
+        <li>Time: ${startTime.toFormat('h:mm a')} - ${endTime.toFormat('h:mm a')}</li>
       </ul>
       <h2>Customer Details:</h2>
       <ul>
@@ -116,19 +133,16 @@ export const sendBookingStatusUpdate = async ({
   customerEmail,
   customerName,
   serviceName,
-  date,
-  startTime,
-  endTime,
+  appointmentStart,
+  appointmentEnd,
   status
-}: {
-  customerEmail: string;
-  customerName: string;
-  serviceName: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  status: 'confirmed' | 'cancelled';
-}) => {
+}: StatusUpdateEmailData) => {
+  // Format dates for email
+  const startTime = DateTime.fromJSDate(appointmentStart)
+    .setZone(TIMEZONE);
+  const endTime = DateTime.fromJSDate(appointmentEnd)
+    .setZone(TIMEZONE);
+
   // Customer email content
   const customerMailOptions = {
     from: process.env.EMAIL_USER,
@@ -140,8 +154,8 @@ export const sendBookingStatusUpdate = async ({
       <p>Your booking has been confirmed and payment of 20 CAD has been received:</p>
       <ul>
         <li>Service: ${serviceName}</li>
-        <li>Date: ${date}</li>
-        <li>Time: ${startTime} - ${endTime}</li>
+        <li>Date: ${startTime.toFormat('EEEE, MMMM d, yyyy')}</li>
+        <li>Time: ${startTime.toFormat('h:mm a')} - ${endTime.toFormat('h:mm a')}</li>
       </ul>
       <p>Thank you for choosing Medina Esthetique!</p>
     ` : `
@@ -150,8 +164,8 @@ export const sendBookingStatusUpdate = async ({
       <p>Your booking has been cancelled:</p>
       <ul>
         <li>Service: ${serviceName}</li>
-        <li>Date: ${date}</li>
-        <li>Time: ${startTime} - ${endTime}</li>
+        <li>Date: ${startTime.toFormat('EEEE, MMMM d, yyyy')}</li>
+        <li>Time: ${startTime.toFormat('h:mm a')} - ${endTime.toFormat('h:mm a')}</li>
       </ul>
       <p>We apologize for any inconvenience.</p>
     `
@@ -167,8 +181,8 @@ export const sendBookingStatusUpdate = async ({
       <h2>Booking Details:</h2>
       <ul>
         <li>Service: ${serviceName}</li>
-        <li>Date: ${date}</li>
-        <li>Time: ${startTime} - ${endTime}</li>
+        <li>Date: ${startTime.toFormat('EEEE, MMMM d, yyyy')}</li>
+        <li>Time: ${startTime.toFormat('h:mm a')} - ${endTime.toFormat('h:mm a')}</li>
         <li>Status: ${status}</li>
       </ul>
       <h2>Customer Details:</h2>

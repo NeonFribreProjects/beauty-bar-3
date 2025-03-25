@@ -79,6 +79,9 @@ model Booking {
   status          String   // 'pending' | 'confirmed' | 'cancelled'
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([serviceId])
+  @@index([appointmentStart, appointmentEnd])
 }
 
 model Admin {

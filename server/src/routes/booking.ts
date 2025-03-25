@@ -1,11 +1,12 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
 import { sendBookingConfirmation, sendBookingStatusUpdate } from '../utils/email';
+import { DateTime } from 'luxon';
 
 const router = Router();
 
 // Get all bookings
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     console.log('Fetching bookings');
     const bookings = await prisma.booking.findMany({
@@ -17,8 +18,19 @@ router.get('/', async (req, res) => {
         }
       }
     });
-    
-    res.json(bookings);
+
+    // Format dates for response
+    const formattedBookings = bookings.map(booking => ({
+      ...booking,
+      appointmentStart: DateTime.fromJSDate(booking.appointmentStart)
+        .setZone('America/Toronto')
+        .toFormat('yyyy-MM-dd HH:mm'),
+      appointmentEnd: DateTime.fromJSDate(booking.appointmentEnd)
+        .setZone('America/Toronto')
+        .toFormat('yyyy-MM-dd HH:mm')
+    }));
+
+    res.json(formattedBookings);
   } catch (error) {
     console.error('Error fetching bookings:', error);
     res.status(500).json({ error: 'Failed to fetch bookings' });
@@ -26,7 +38,7 @@ router.get('/', async (req, res) => {
 });
 
 // Update booking status
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -34,18 +46,22 @@ router.patch('/:id/status', async (req, res) => {
     const booking = await prisma.booking.update({
       where: { id },
       data: { status },
-      include: { service: true }
+      include: {
+        service: {
+          include: {
+            category: true
+          }
+        }
+      }
     });
 
-    // Send status update emails
     if (status === 'confirmed' || status === 'cancelled') {
       await sendBookingStatusUpdate({
         customerEmail: booking.customerEmail,
         customerName: booking.customerName,
         serviceName: booking.service.name,
-        date: booking.date,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
+        appointmentStart: booking.appointmentStart,
+        appointmentEnd: booking.appointmentEnd,
         status: status
       });
     }
@@ -57,11 +73,10 @@ router.patch('/:id/status', async (req, res) => {
 });
 
 // Create booking
-router.post('/', async (req, res) => {
-  console.log('Received booking request:', req.body);
+router.post('/', async (req: Request, res: Response) => {
   try {
-    const { serviceId, date, startTime, endTime, customerName, customerEmail, customerPhone } = req.body;
-    
+    const { serviceId, customerName, customerEmail, customerPhone, appointmentStart, appointmentEnd } = req.body;
+
     // Validate required fields
     if (!customerName || !customerEmail || !customerPhone) {
       return res.status(400).json({ error: 'Customer details are required' });
@@ -70,31 +85,34 @@ router.post('/', async (req, res) => {
     const booking = await prisma.booking.create({
       data: {
         serviceId,
-        customerName,  // No fallback
-        customerEmail, // No fallback
-        customerPhone, // No fallback
-        date,
-        startTime,
-        endTime,
+        customerName,
+        customerEmail,
+        customerPhone,
+        appointmentStart: new Date(appointmentStart),
+        appointmentEnd: new Date(appointmentEnd),
         status: 'pending'
       },
-      include: { service: true }
+      include: {
+        service: {
+          include: {
+            category: true
+          }
+        }
+      }
     });
 
-    // Send confirmation email
     await sendBookingConfirmation({
       customerEmail: booking.customerEmail,
       customerName: booking.customerName,
       serviceName: booking.service.name,
-      date: booking.date,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
+      appointmentStart: booking.appointmentStart,
+      appointmentEnd: booking.appointmentEnd,
       customerPhone: booking.customerPhone
     });
 
     res.status(201).json(booking);
   } catch (error) {
-    console.error('Booking error:', error);
+    console.error('Error creating booking:', error);
     res.status(500).json({ error: 'Failed to create booking' });
   }
 });
