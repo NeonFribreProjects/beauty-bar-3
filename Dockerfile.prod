@@ -24,7 +24,7 @@ COPY --from=backend-builder /app/backend/prisma ./server/prisma
 RUN cd server && npm install --production
 RUN cd server && npx prisma generate
 RUN cd server && npm install typescript --save-dev
-RUN cd server && npx tsc prisma/seed.ts --outDir prisma
+RUN cd server && npx tsc -p prisma/tsconfig.seed.json
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
