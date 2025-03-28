@@ -34,10 +34,12 @@ COPY --from=backend-builder /app/backend/prisma ./server/prisma
 COPY --from=backend-builder /app/backend/prisma/dist/seed.js ./server/prisma/
 COPY --from=backend-builder /app/backend/node_modules/.prisma ./server/node_modules/.prisma
 
-# Install dependencies in server directory
+# Install dependencies and set permissions
 WORKDIR /app/server
-RUN npm install --production
-RUN npx prisma generate
+RUN npm install --production && \
+    npx prisma generate && \
+    mkdir -p node_modules/.prisma && \
+    chmod -R 777 node_modules/.prisma
 
 # Stay in /app for final state
 WORKDIR /app
