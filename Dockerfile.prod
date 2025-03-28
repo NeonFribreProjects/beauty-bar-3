@@ -1,23 +1,25 @@
 FROM node:18-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY client/package*.json ./
-RUN npm install
+RUN npm install --production
 COPY client/ .
 RUN npm run build
 
 FROM node:18-alpine AS backend-builder
 WORKDIR /app/backend
-# Install OpenSSL in builder stage
-RUN apk add --no-cache openssl
+# Install OpenSSL and clean cache in same layer
+RUN apk add --no-cache openssl && rm -rf /var/cache/apk/*
 COPY server/package*.json ./
-RUN npm install
-RUN npm install @types/node --save-dev
+# Combine install commands to reduce layers
+RUN npm install && \
+    npm install @types/node --save-dev && \
+    npm cache clean --force
+
 COPY server/ .
-RUN npx prisma generate
-RUN npx tsc -p prisma/tsconfig.prisma.json
-RUN npm run build
-# Compile seed file with specific config
-RUN npx tsc -p prisma/tsconfig.seed.json
+RUN npx prisma generate && \
+    npx tsc -p prisma/tsconfig.prisma.json && \
+    npm run build && \
+    npx tsc -p prisma/tsconfig.seed.json
 
 FROM node:18-alpine
 # Install OpenSSL in final stage
