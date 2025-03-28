@@ -7,6 +7,8 @@ RUN npm run build
 
 FROM node:18-alpine AS backend-builder
 WORKDIR /app/backend
+# Install OpenSSL in builder stage
+RUN apk add --no-cache openssl
 COPY server/package*.json ./
 RUN npm install
 RUN npm install @types/node --save-dev
@@ -18,6 +20,9 @@ RUN npm run build
 RUN npx tsc -p prisma/tsconfig.seed.json
 
 FROM node:18-alpine
+# Install OpenSSL in final stage
+RUN apk add --no-cache openssl
+
 # Start in root directory
 WORKDIR /app
 
@@ -27,6 +32,7 @@ COPY --from=backend-builder /app/backend/dist ./server/dist
 COPY --from=backend-builder /app/backend/package*.json ./server/
 COPY --from=backend-builder /app/backend/prisma ./server/prisma
 COPY --from=backend-builder /app/backend/prisma/dist/seed.js ./server/prisma/
+COPY --from=backend-builder /app/backend/node_modules/.prisma ./server/node_modules/.prisma
 
 # Install dependencies in server directory
 WORKDIR /app/server
