@@ -18,21 +18,24 @@ RUN npm run build
 RUN npx tsc -p prisma/tsconfig.seed.json
 
 FROM node:18-alpine
+# Start in root directory
+WORKDIR /app
+
+# Copy files maintaining structure
+COPY --from=frontend-builder /app/frontend/dist ./client/dist
+COPY --from=backend-builder /app/backend/dist ./server/dist
+COPY --from=backend-builder /app/backend/package*.json ./server/
+COPY --from=backend-builder /app/backend/prisma ./server/prisma
+COPY --from=backend-builder /app/backend/prisma/dist/seed.js ./server/prisma/
+
+# Install dependencies in server directory
 WORKDIR /app/server
-RUN apk add --no-cache openssl
-
-# Update copy paths to match new structure
-COPY --from=frontend-builder /app/frontend/dist ../client/dist
-COPY --from=backend-builder /app/backend/dist ./dist
-COPY --from=backend-builder /app/backend/package*.json ./
-COPY --from=backend-builder /app/backend/prisma ./prisma
-COPY --from=backend-builder /app/backend/prisma/dist/seed.js ./prisma/
-
-# Install in correct location
 RUN npm install --production
 RUN npx prisma generate
 
+# Stay in /app for final state
 WORKDIR /app
+
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
