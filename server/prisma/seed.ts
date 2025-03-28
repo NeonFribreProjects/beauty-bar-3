@@ -122,7 +122,7 @@ async function main() {
       where: { name: service.categoryName }
     });
 
-    await prisma.service.upsert({
+    const upsertedService = await prisma.service.upsert({
       where: {
         name_categoryId: {
           name: service.name,
@@ -145,10 +145,10 @@ async function main() {
 
     // Create availability after service is created
     await prisma.serviceAvailability.upsert({
-      where: { serviceId: service.id },
+      where: { serviceId: upsertedService.id },
       update: {},
       create: {
-        serviceId: service.id,
+        serviceId: upsertedService.id,
         duration: 60,
         breakTime: 15,
         maxBookingsPerDay: 8,
