@@ -21,44 +21,30 @@ export const generateTimeSlots = (
   const bizZone = 'America/Toronto';
   const slots: TimeSlot[] = [];
   
-  // Convert date to DateTime in business timezone
-  const dt = DateTime.fromISO(date, { zone: bizZone });
-  if (!dt.isValid) {
-    throw new Error('Invalid date format');
-  }
-  
   const start = timeToMinutes(startTime);
   const end = timeToMinutes(endTime);
   
   let currentTime = start;
   while (currentTime + duration <= end) {
-    // Create slot start time
-    const slotStart = dt.set({
-      hour: Math.floor(currentTime / 60),
-      minute: currentTime % 60,
-      second: 0,
-      millisecond: 0
-    });
+    const startTimeString = minutesToTime(currentTime);
+    const endTimeString = minutesToTime(currentTime + duration);
 
-    // Create slot end time
-    const slotEnd = slotStart.plus({ minutes: duration });
+    // Convert to DateTime for comparison
+    const slotStart = DateTime.fromFormat(
+      `${date} ${startTimeString}`,
+      'yyyy-MM-dd HH:mm',
+      { zone: bizZone }
+    );
 
-    // Check if slot is booked
     const isBooked = existingBookings.some(booking => {
       const bookingStart = DateTime.fromJSDate(booking.appointmentStart, { zone: bizZone });
-      const bookingEnd = DateTime.fromJSDate(booking.appointmentEnd, { zone: bizZone });
-      
-      // Check for overlap
-      return (
-        (slotStart >= bookingStart && slotStart < bookingEnd) ||
-        (slotEnd > bookingStart && slotEnd <= bookingEnd)
-      );
+      return bookingStart.equals(slotStart);
     });
-
+    
     if (!isBooked) {
       slots.push({
-        startTime: slotStart.toFormat('HH:mm'),
-        endTime: slotEnd.toFormat('HH:mm'),
+        startTime: startTimeString,
+        endTime: endTimeString,
         available: true
       });
     }
@@ -70,7 +56,7 @@ export const generateTimeSlots = (
 };
 
 // Helper functions
-export const timeToMinutes = (time: string): number => {
+const timeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 };
