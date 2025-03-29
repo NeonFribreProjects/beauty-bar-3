@@ -21,13 +21,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Routes
-app.use('/api/bookings', bookingRoutes);
-app.use('/api/availability', availabilityRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/services', serviceRoutes);
-
-// Health check endpoint
+// Health check endpoint (MOVED UP)
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -38,6 +32,12 @@ app.get('/api/health', (req, res) => {
     }
   });
 });
+
+// Routes
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/availability', availabilityRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/services', serviceRoutes);
 
 // Error handling
 app.use(errorHandler);
