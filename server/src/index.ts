@@ -25,6 +25,18 @@ app.use('/api/availability', availabilityRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/services', serviceRoutes);
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: prisma ? 'connected' : 'disconnected',
+      redis: redis ? 'connected' : 'disconnected'
+    }
+  });
+});
+
 // Error handling
 app.use(errorHandler);
 
