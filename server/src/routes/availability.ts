@@ -308,7 +308,7 @@ router.get('/:serviceId/time-slots', async (req, res) => {
   }
 });
 
-// Get bookings for a service
+// Get bookings for a service (UPDATED PATH)
 router.get('/services/:serviceId/bookings', async (req, res) => {
   try {
     const { serviceId } = req.params;
@@ -333,7 +333,7 @@ router.get('/services/:serviceId/bookings', async (req, res) => {
       }
     });
 
-    // Format dates consistently for frontend
+    // Format dates consistently
     const formattedBookings = bookings.map(booking => {
       const start = DateTime.fromJSDate(booking.appointmentStart);
       const end = DateTime.fromJSDate(booking.appointmentEnd);
@@ -348,7 +348,7 @@ router.get('/services/:serviceId/bookings', async (req, res) => {
         appointmentStart: start.setZone('America/Toronto').toISO(),
         appointmentEnd: end.setZone('America/Toronto').toISO()
       };
-    }).filter(Boolean); // Remove any null entries
+    }).filter(Boolean);
 
     res.json(formattedBookings);
   } catch (error) {
