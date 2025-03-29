@@ -21,30 +21,34 @@ export const generateTimeSlots = (
   const bizZone = 'America/Toronto';
   const slots: TimeSlot[] = [];
   
+  // Convert date to DateTime in business timezone
+  const dt = DateTime.fromISO(date, { zone: bizZone });
+  if (!dt.isValid) {
+    throw new Error('Invalid date format');
+  }
+  
   const start = timeToMinutes(startTime);
   const end = timeToMinutes(endTime);
   
   let currentTime = start;
   while (currentTime + duration <= end) {
-    const startTimeString = minutesToTime(currentTime);
-    const endTimeString = minutesToTime(currentTime + duration);
+    const slotStart = dt.set({
+      hour: Math.floor(currentTime / 60),
+      minute: currentTime % 60
+    });
 
-    // Convert to DateTime for comparison
-    const slotStart = DateTime.fromFormat(
-      `${date} ${startTimeString}`,
-      'yyyy-MM-dd HH:mm',
-      { zone: bizZone }
-    );
+    const slotEnd = slotStart.plus({ minutes: duration });
 
+    // Check if slot is booked
     const isBooked = existingBookings.some(booking => {
       const bookingStart = DateTime.fromJSDate(booking.appointmentStart, { zone: bizZone });
       return bookingStart.equals(slotStart);
     });
-    
+
     if (!isBooked) {
       slots.push({
-        startTime: startTimeString,
-        endTime: endTimeString,
+        startTime: slotStart.toFormat('HH:mm'),
+        endTime: slotEnd.toFormat('HH:mm'),
         available: true
       });
     }
@@ -56,7 +60,7 @@ export const generateTimeSlots = (
 };
 
 // Helper functions
-const timeToMinutes = (time: string): number => {
+export const timeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 };
