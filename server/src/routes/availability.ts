@@ -308,4 +308,53 @@ router.get('/:serviceId/time-slots', async (req, res) => {
   }
 });
 
+// Get bookings for a service
+router.get('/services/:serviceId/bookings', async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    
+    const bookings = await prisma.booking.findMany({
+      where: {
+        serviceId,
+        status: { not: 'cancelled' }
+      },
+      orderBy: {
+        appointmentStart: 'asc'
+      },
+      select: {
+        id: true,
+        customerName: true,
+        customerEmail: true,
+        customerPhone: true,
+        appointmentStart: true,
+        appointmentEnd: true,
+        status: true,
+        serviceId: true
+      }
+    });
+
+    // Format dates consistently for frontend
+    const formattedBookings = bookings.map(booking => {
+      const start = DateTime.fromJSDate(booking.appointmentStart);
+      const end = DateTime.fromJSDate(booking.appointmentEnd);
+      
+      if (!start.isValid || !end.isValid) {
+        console.error('Invalid date for booking:', booking.id);
+        return null;
+      }
+
+      return {
+        ...booking,
+        appointmentStart: start.setZone('America/Toronto').toISO(),
+        appointmentEnd: end.setZone('America/Toronto').toISO()
+      };
+    }).filter(Boolean); // Remove any null entries
+
+    res.json(formattedBookings);
+  } catch (error) {
+    console.error('Error fetching bookings:', error);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+});
+
 export { router as availabilityRoutes }; 
