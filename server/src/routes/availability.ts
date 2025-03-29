@@ -270,4 +270,42 @@ router.post('/bookings', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/:serviceId/time-slots', async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const { date } = req.query;
+
+    // Validate date
+    const dt = DateTime.fromISO(date as string, { zone: 'America/Toronto' });
+    if (!dt.isValid) {
+      return res.status(400).json({ error: 'Invalid date format' });
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        serviceId,
+        appointmentStart: {
+          gte: dt.startOf('day').toJSDate(),
+          lt: dt.endOf('day').toJSDate()
+        }
+      },
+      select: {
+        appointmentStart: true,
+        appointmentEnd: true
+      }
+    });
+
+    // Format bookings for response
+    const formattedBookings = bookings.map(booking => ({
+      start: DateTime.fromJSDate(booking.appointmentStart, { zone: 'America/Toronto' }).toISO(),
+      end: DateTime.fromJSDate(booking.appointmentEnd, { zone: 'America/Toronto' }).toISO()
+    }));
+
+    res.json(formattedBookings);
+  } catch (error) {
+    console.error('Error fetching time slots:', error);
+    res.status(500).json({ error: 'Failed to fetch time slots' });
+  }
+});
+
 export { router as availabilityRoutes }; 
