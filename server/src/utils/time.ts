@@ -32,17 +32,27 @@ export const generateTimeSlots = (
   
   let currentTime = start;
   while (currentTime + duration <= end) {
+    // Create slot start time
     const slotStart = dt.set({
       hour: Math.floor(currentTime / 60),
-      minute: currentTime % 60
+      minute: currentTime % 60,
+      second: 0,
+      millisecond: 0
     });
 
+    // Create slot end time
     const slotEnd = slotStart.plus({ minutes: duration });
 
     // Check if slot is booked
     const isBooked = existingBookings.some(booking => {
       const bookingStart = DateTime.fromJSDate(booking.appointmentStart, { zone: bizZone });
-      return bookingStart.equals(slotStart);
+      const bookingEnd = DateTime.fromJSDate(booking.appointmentEnd, { zone: bizZone });
+      
+      // Check for overlap
+      return (
+        (slotStart >= bookingStart && slotStart < bookingEnd) ||
+        (slotEnd > bookingStart && slotEnd <= bookingEnd)
+      );
     });
 
     if (!isBooked) {
