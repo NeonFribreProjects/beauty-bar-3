@@ -308,11 +308,16 @@ router.get('/:serviceId/time-slots', async (req, res) => {
   }
 });
 
-// Get bookings for a service (UPDATED PATH)
+// Get bookings for a service
 router.get('/services/:serviceId/bookings', async (req, res) => {
   try {
     const { serviceId } = req.params;
     
+    // Validate serviceId
+    if (!serviceId) {
+      return res.status(400).json({ error: 'Service ID is required' });
+    }
+
     const bookings = await prisma.booking.findMany({
       where: {
         serviceId,
@@ -333,23 +338,38 @@ router.get('/services/:serviceId/bookings', async (req, res) => {
       }
     });
 
+    // Debug log
+    console.log('Raw bookings:', JSON.stringify(bookings, null, 2));
+
     // Format dates consistently
     const formattedBookings = bookings.map(booking => {
-      const start = DateTime.fromJSDate(booking.appointmentStart);
-      const end = DateTime.fromJSDate(booking.appointmentEnd);
-      
-      if (!start.isValid || !end.isValid) {
-        console.error('Invalid date for booking:', booking.id);
+      try {
+        const start = DateTime.fromJSDate(booking.appointmentStart);
+        const end = DateTime.fromJSDate(booking.appointmentEnd);
+        
+        if (!start.isValid || !end.isValid) {
+          console.error('Invalid date for booking:', booking.id);
+          return null;
+        }
+
+        return {
+          id: booking.id,
+          customerName: booking.customerName,
+          customerEmail: booking.customerEmail,
+          customerPhone: booking.customerPhone,
+          appointmentStart: start.setZone('America/Toronto').toISO(),
+          appointmentEnd: end.setZone('America/Toronto').toISO(),
+          status: booking.status,
+          serviceId: booking.serviceId
+        };
+      } catch (error) {
+        console.error('Error formatting booking:', booking.id, error);
         return null;
       }
-
-      return {
-        ...booking,
-        appointmentStart: start.setZone('America/Toronto').toISO(),
-        appointmentEnd: end.setZone('America/Toronto').toISO()
-      };
     }).filter(Boolean);
 
+    // Set proper content type
+    res.setHeader('Content-Type', 'application/json');
     res.json(formattedBookings);
   } catch (error) {
     console.error('Error fetching bookings:', error);
