@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import { Redis } from 'ioredis';
 import { bookingRoutes } from './routes/booking';
 import { availabilityRoutes } from './routes/availability';
 import { errorHandler } from './middleware/error';
@@ -9,6 +10,7 @@ import { serviceRoutes } from './routes/service';
 
 const app = express();
 export const prisma = new PrismaClient();
+export const redis = new Redis(process.env.REDIS_URL || 'redis://redis:6379');
 
 // Middleware
 app.use(cors({
