@@ -37,9 +37,12 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     depends_on:
       - app
+    networks:
+      - app-network
 
   db:
     image: postgres:14-alpine

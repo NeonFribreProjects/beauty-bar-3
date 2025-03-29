@@ -60,12 +60,14 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
     }
 
     // Check existing bookings using DateTime fields
-    const existingBookings = await prisma.booking.findMany({
+    const startOfDay = dt.startOf('day').toJSDate();
+    const endOfDay = dt.endOf('day').toJSDate();
+    const bookings = await prisma.booking.findMany({
       where: {
         serviceId,
         appointmentStart: {
-          gte: dt.startOf('day').toJSDate(),
-          lt: dt.endOf('day').toJSDate()
+          gte: startOfDay,
+          lt: endOfDay
         },
         status: { not: 'cancelled' }
       }
@@ -76,7 +78,7 @@ router.get('/services/:serviceId/time-slots', async (req: Request, res: Response
       adminAvailability.endTime,
       Number(service.duration),
       adminAvailability.breakTime || 0,
-      existingBookings,
+      bookings,
       date
     );
 
