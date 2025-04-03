@@ -37,7 +37,7 @@ services:
       retries: 5
     networks:
       - app-network
-    command: sh -c "cd /app/server && npm run dev"
+    command: npm run start
 
   nginx:
     build:
