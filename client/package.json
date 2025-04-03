@@ -4,9 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "watch": "tsc --watch"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -21,6 +22,8 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@sentry/react": "^7.120.3",
     "@tanstack/react-query": "^5.66.0",
+    "luxon": "^3.4.4",
+    "@types/luxon": "^3.4.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
