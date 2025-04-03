@@ -5,6 +5,7 @@ import { validateAvailability } from '../validators/availability';
 import { generateTimeSlots } from '../utils/time';
 import { redis } from '../utils/redis';
 import { DateTime } from 'luxon';
+import { sendBookingConfirmation } from '../utils/email';
 
 const router = Router();
 
@@ -235,6 +236,11 @@ router.delete('/blocked/:category/:id', async (req: Request, res: Response) => {
 
 router.post('/bookings', async (req: Request, res: Response) => {
   try {
+    console.log('[Booking Request]', {
+      ...req.body,
+      customerEmail: '***@***.com' // Mask sensitive data in logs
+    });
+
     const { serviceId, date, startTime, endTime, customerName, customerEmail, customerPhone } = req.body;
 
     // Convert date and time strings to UTC DateTime
@@ -260,8 +266,46 @@ router.post('/bookings', async (req: Request, res: Response) => {
         customerEmail,
         customerPhone,
         status: 'pending'
+      },
+      include: {
+        service: {
+          include: {
+            category: true
+          }
+        }
       }
     });
+
+    // Send email confirmation
+    try {
+      console.log('[Sending Email] Starting email confirmation process');
+      
+      await sendBookingConfirmation({
+        customerEmail,
+        customerName,
+        serviceName: booking.service.name,
+        appointmentStart: booking.appointmentStart,
+        appointmentEnd: booking.appointmentEnd,
+        customerPhone
+      });
+
+      console.log('[Email Sent] Successfully sent booking confirmation');
+      
+      // Store email status in Redis for monitoring
+      await redis.setex(
+        `email:booking:${booking.id}`,
+        86400, // 24 hours
+        JSON.stringify({
+          sent: true,
+          timestamp: new Date().toISOString(),
+          type: 'booking_confirmation'
+        })
+      );
+
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+      // Don't return error to client, booking was still created
+    }
 
     return res.json(booking);
   } catch (error) {
