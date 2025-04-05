@@ -5,9 +5,10 @@ FROM node:18-alpine
 RUN apk add --no-cache \
     git \
     curl \
-    openssl1.1-compat \
+    openssl \
     openssl-dev \
-    netcat-openbsd
+    netcat-openbsd \
+    && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.14/main libssl1.1
 
 WORKDIR /app
 
