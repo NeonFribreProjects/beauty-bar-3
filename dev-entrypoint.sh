@@ -10,15 +10,16 @@ while ! nc -z db 5432; do
   sleep 1
 done
 
-cd /app/server  
+cd /app/server
 
 # Install dependencies first
 echo "Installing dependencies..."
 npm install bcrypt @types/bcrypt
 
-# Generate Prisma Client with specific OpenSSL path
+# Generate Prisma Client
 echo "Generating Prisma Client..."
-export PRISMA_QUERY_ENGINE_LIBRARY=/usr/lib/libssl.so.1.1
+# Remove the explicit OpenSSL path - let Prisma detect it
+unset PRISMA_QUERY_ENGINE_LIBRARY
 npx prisma generate
 
 # Clean up any existing migrations
@@ -31,4 +32,4 @@ npx prisma migrate dev --name init
 
 # Start development servers
 echo "Starting development servers..."
-cd /app && npm run dev
+npm run dev
