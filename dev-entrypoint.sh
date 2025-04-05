@@ -10,7 +10,7 @@ while ! nc -z db 5432; do
   sleep 1
 done
 
-cd /app/server
+cd /app/server  
 
 # Install dependencies first
 echo "Installing dependencies..."
