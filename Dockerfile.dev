@@ -14,13 +14,15 @@ COPY server/package*.json ./server/
 # Install dependencies efficiently
 RUN npm install --no-audit --prefer-offline && \
     cd server && npm install --no-audit --prefer-offline && \
-    cd ../client && npm install --no-audit --prefer-offline && \
-    npx prisma generate
+    cd ../client && npm install --no-audit --prefer-offline
 
-# Copy source code
+# Copy source code first, then generate Prisma
 COPY . .
 
-# Development startup script
+# Generate Prisma client
+RUN cd server && npx prisma generate
+
+# Set permissions for entrypoint
 COPY dev-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/dev-entrypoint.sh
 
