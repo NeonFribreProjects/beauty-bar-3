@@ -11,18 +11,23 @@ COPY package*.json ./
 COPY client/package*.json ./client/
 COPY server/package*.json ./server/
 
-# Install dependencies with clean npm cache
-RUN npm cache clean --force
-RUN cd server && npm install
-RUN cd client && npm install
+# Install root dependencies
 RUN npm install
+
+# Install server dependencies including Prisma
+WORKDIR /app/server
+RUN npm install
+RUN npx prisma generate
+
+# Install client dependencies
+WORKDIR /app/client
+RUN npm install
+
+# Back to app root
+WORKDIR /app
 
 # Copy source code
 COPY . .
-
-# Generate Prisma client at build time
-RUN cd server && \
-    npx prisma generate
 
 # Development startup script
 COPY dev-entrypoint.sh /usr/local/bin/
