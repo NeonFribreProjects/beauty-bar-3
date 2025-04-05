@@ -15,11 +15,10 @@ cd /app/server
 # Install dependencies first
 echo "Installing dependencies..."
 npm install bcrypt @types/bcrypt
+npm install @prisma/client
 
 # Generate Prisma Client
 echo "Generating Prisma Client..."
-# Remove the explicit OpenSSL path - let Prisma detect it
-unset PRISMA_QUERY_ENGINE_LIBRARY
 npx prisma generate
 
 # Clean up any existing migrations
