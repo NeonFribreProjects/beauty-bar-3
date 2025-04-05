@@ -12,9 +12,8 @@ done
 
 cd /app/server
 
-# Install dependencies first
-echo "Installing dependencies..."
-npm install bcrypt @types/bcrypt
+# Install Prisma client explicitly
+echo "Installing Prisma client..."
 npm install @prisma/client
 
 # Clean up any existing migrations
@@ -24,6 +23,9 @@ rm -rf prisma/migrations/*
 # Generate and apply migrations
 echo "Generating and applying migrations..."
 npx prisma migrate reset --force
+
+# Generate Prisma client
+echo "Generating Prisma client..."
 npx prisma generate
 
 # Start development servers
