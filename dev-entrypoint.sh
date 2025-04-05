@@ -21,9 +21,10 @@ npm install @prisma/client
 echo "Cleaning migrations..."
 rm -rf prisma/migrations/*
 
-# Generate initial migration
-echo "Generating migration..."
-npx prisma migrate dev --name init
+# Generate and apply migrations
+echo "Generating and applying migrations..."
+npx prisma migrate reset --force
+npx prisma generate
 
 # Start development servers
 echo "Starting development servers..."
