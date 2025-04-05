@@ -10,12 +10,19 @@ fi
 
 cd "$SERVER_DIR"
 
+# Wait for database to be ready
+echo "Waiting for database..."
+../wait-for-it.sh db:5432 -t 60
+
+# Reset and run migrations
+echo "Running migrations..."
+npx prisma migrate reset --force
+
+echo "Starting development servers..."
+npm run dev
+
 # Ensure Prisma client is generated
 npx prisma generate
-
-# Run migrations
-echo "Running migrations..."
-npx prisma migrate deploy
 
 # Run seeds with absolute path
 echo "Running seeds..."

@@ -38,5 +38,9 @@ ENV PORT=3000
 # Expose port
 EXPOSE 3000
 
+# Copy wait-for-it script
+COPY wait-for-it.sh /app/wait-for-it.sh
+RUN chmod +x /app/wait-for-it.sh
+
 # Start the server
 CMD ["npm", "start"] 

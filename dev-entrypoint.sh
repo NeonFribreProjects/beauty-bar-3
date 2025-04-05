@@ -10,7 +10,7 @@ cd /app/server
 
 # Run migrations in development
 echo "Running migrations..."
-npx prisma migrate dev
+npx prisma migrate dev --name init
 
 # Always run seeds in development
 echo "Running seeds..."
@@ -18,5 +18,4 @@ npx ts-node prisma/seed.ts
 
 # Start development servers
 echo "Starting development servers..."
-cd /app
-npm run dev 
+exec npm run dev 
