@@ -1,4 +1,3 @@
-#!/bin/sh
 set -e
 
 # Wait for database
@@ -9,17 +8,17 @@ done
 
 cd /app/server
 
-# Run migrations in development
-echo "Running migrations..."
-npx prisma migrate dev --name initial_migration --create-only
+# Install dependencies first
+echo "Installing dependencies..."
+npm install bcrypt @types/bcrypt
 
-# Apply migrations
-echo "Applying migrations..."
-npx prisma migrate deploy
+# Clean up any existing migrations
+echo "Cleaning migrations..."
+rm -rf prisma/migrations/*
 
-# Always run seeds in development
-echo "Running seeds..."
-npx ts-node prisma/seed.ts
+# Generate initial migration
+echo "Generating migration..."
+npx prisma migrate dev --name init
 
 # Start development servers
 echo "Starting development servers..."
