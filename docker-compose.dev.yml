@@ -10,6 +10,12 @@ services:
       - client_node_modules:/app/client/node_modules
       - ./server:/app/server:delegated
       - server_node_modules:/app/server/node_modules
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 2G
     entrypoint: ["/usr/local/bin/dev-entrypoint.sh"]
     command: ["npm", "run", "dev"]
     ports:

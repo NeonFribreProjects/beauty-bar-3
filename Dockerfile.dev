@@ -1,8 +1,9 @@
 # Development image with full development dependencies
 FROM node:18-alpine
 
-# Install development tools and OpenSSL
-RUN apk add --no-cache git curl openssl openssl-dev netcat-openbsd
+# Install dependencies in a single layer
+RUN apk add --no-cache git curl openssl openssl-dev netcat-openbsd && \
+    npm install -g npm@latest
 
 WORKDIR /app
 
@@ -11,20 +12,11 @@ COPY package*.json ./
 COPY client/package*.json ./client/
 COPY server/package*.json ./server/
 
-# Install root dependencies
-RUN npm install
-
-# Install server dependencies including Prisma
-WORKDIR /app/server
-RUN npm install
-RUN npx prisma generate
-
-# Install client dependencies
-WORKDIR /app/client
-RUN npm install
-
-# Back to app root
-WORKDIR /app
+# Install dependencies efficiently
+RUN npm install --no-audit --prefer-offline && \
+    cd server && npm install --no-audit --prefer-offline && \
+    cd ../client && npm install --no-audit --prefer-offline && \
+    npx prisma generate
 
 # Copy source code
 COPY . .
