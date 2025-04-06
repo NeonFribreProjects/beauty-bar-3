@@ -8,6 +8,7 @@ import { errorHandler } from './middleware/error';
 import { categoryRoutes } from './routes/category';
 import { serviceRoutes } from './routes/service';
 import { securityHeaders } from './middleware/security';
+import path from 'path';
 
 const app = express();
 export const prisma = new PrismaClient();
@@ -45,6 +46,9 @@ app.use(securityHeaders);
 
 // Error handling
 app.use(errorHandler);
+
+// Update static file serving with proper path import
+app.use(express.static(path.join(__dirname, '../../client/dist')));
 
 // Add after all routes
 app.get('*', (req, res) => {
