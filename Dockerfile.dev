@@ -1,7 +1,7 @@
 # Development image with full development dependencies
-FROM node:18-alpine
+FROM node:20-alpine
 
-# Install dependencies in a single layer with correct OpenSSL version
+# Install dependencies in a single layer
 RUN apk add --no-cache \
     git \
     curl \
@@ -9,6 +9,7 @@ RUN apk add --no-cache \
     openssl-dev \
     netcat-openbsd \
     && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.14/main libssl1.1
+    libc6-compat
 
 WORKDIR /app
 
@@ -19,7 +20,8 @@ COPY server/package*.json ./server/
 
 # Install dependencies efficiently
 RUN npm install --no-audit --prefer-offline && \
-    cd server && npm install --no-audit --prefer-offline && \
+    cd server && \
+    npm install --no-audit --prefer-offline && \
     cd ../client && npm install --no-audit --prefer-offline
 
 # Copy source code

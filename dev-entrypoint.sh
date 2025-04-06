@@ -10,24 +10,15 @@ while ! nc -z db 5432; do
   sleep 1
 done
 
+# All Prisma operations must run from server context
 cd /app/server
 
-# Install Prisma client explicitly
-echo "Installing Prisma client..."
-npm install @prisma/client
+# Apply migrations safely (non-destructively)
+echo "Applying pending Prisma migrations..."
+npx prisma migrate deploy    # Safe: applies pending migrations without dropping data
 
-# Clean up any existing migrations
-echo "Cleaning migrations..."
-rm -rf prisma/migrations/*
-
-# Generate and apply migrations
-echo "Generating and applying migrations..."
-npx prisma migrate reset --force
-
-# Generate Prisma client
 echo "Generating Prisma client..."
-npx prisma generate
+npx prisma generate         # Regenerate client to match current schema
 
-# Start development servers
-echo "Starting development servers..."
+# Start development servers from project root
 cd /app && npm run dev
