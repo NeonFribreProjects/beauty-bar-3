@@ -7,6 +7,7 @@ import { availabilityRoutes } from './routes/availability';
 import { errorHandler } from './middleware/error';
 import { categoryRoutes } from './routes/category';
 import { serviceRoutes } from './routes/service';
+import { securityHeaders } from './middleware/security';
 
 const app = express();
 export const prisma = new PrismaClient();
@@ -39,8 +40,16 @@ app.use('/api/availability', availabilityRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/services', serviceRoutes);
 
+// Add before routes
+app.use(securityHeaders);
+
 // Error handling
 app.use(errorHandler);
+
+// Add after all routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
