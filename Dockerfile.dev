@@ -8,7 +8,6 @@ RUN apk add --no-cache \
     openssl \
     openssl-dev \
     netcat-openbsd \
-    && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.14/main libssl1.1
     libc6-compat
 
 WORKDIR /app
