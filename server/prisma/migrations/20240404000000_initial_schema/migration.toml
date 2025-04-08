@@ -1,1 +1,3 @@
- 
+# This is an empty migration.
+
+migration_name = "20240404000000_initial_schema" 
