@@ -23,7 +23,7 @@ services:
       # - "80:80"  # Map container port 80 to host port 80
       - "5173:5173"  # Vite dev server port
     environment:
-      - PORT=3000
+      - PORT=3000 # might delete this later  
       - NODE_ENV=development
       - VITE_API_URL=http://65.21.158.167:3000
       - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar
