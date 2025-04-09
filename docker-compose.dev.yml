@@ -4,7 +4,18 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.dev
+    networks:
+      - dev-network
+    ports:
+      - "3000:3000"  # Backend API
+      - "5173:5173"  # Vite dev server
+    environment:
+      - NODE_ENV=development
+      - PORT=3000    # Explicitly set port
+      - VITE_API_URL=http://65.21.158.167:3000
+      - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar_dev
+      - REDIS_URL=redis://redis:6379
     volumes:
       - ./client:/app/client:delegated
       - client_node_modules:/app/client/node_modules
@@ -18,13 +29,6 @@ services:
           memory: 2G
     entrypoint: ["/usr/local/bin/dev-entrypoint.sh"]
     command: ["npm", "run", "dev"]
-    ports:
-      - "80:80"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar_prod
-      - REDIS_URL=redis://redis:6379
-      - SEED_DB=true
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 10s
@@ -33,15 +37,13 @@ services:
     depends_on:
       - db
       - redis
-    networks:
-      - prod-network
 
   db:
     image: postgres:14-alpine
     networks:
-      - prod-network
+      - dev-network
     environment:
-      - POSTGRES_DB=beauty_bar_prod  # Different DB name
+      - POSTGRES_DB=beauty_bar_dev  # Different DB name
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=kevjeff1
     volumes:
@@ -52,11 +54,11 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - prod-network
+      - dev-network
 
 networks:
-  prod-network:
-    name: beauty-bar-prod-network
+  dev-network:
+    name: beauty-bar-dev-network
 
 volumes:
   client_node_modules:
