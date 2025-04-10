@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     ports:
-      - "80:80"
+      #- "80:80" replaced this with 3000 for production to fix the issue with the nginx container conflicting with the backend server port
+      - "3000:3000"
     env_file:
       - ./server/.env
     environment:
@@ -85,6 +86,7 @@ volumes:
   postgres_data:
   redis_data:
 
+# Define networks
 networks:
   prod-network:
     name: beauty-bar-prod-network
