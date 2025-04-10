@@ -182,5 +182,13 @@ export const api = {
     });
     if (!response.ok) throw new Error('Failed to unblock date');
     return response.json();
+  },
+
+  getFeaturedServices: async () => {
+    const response = await fetch(`${API_BASE_URL}/services/Featured`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch featured services');
+    }
+    return response.json();
   }
 }; 

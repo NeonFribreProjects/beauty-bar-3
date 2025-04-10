@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { Redis } from 'ioredis';
@@ -37,9 +37,9 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/services', serviceRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/api/services', serviceRoutes);
 
 // Add before routes
 app.use(securityHeaders);
@@ -53,6 +53,12 @@ app.use(express.static(path.join(__dirname, '../../client/dist')));
 // Add after all routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+});
+
+// Add error logging middleware
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(`[${req.method}] ${req.path} Error:`, err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 const port = parseInt(process.env.PORT || '3000', 10);
