@@ -30,12 +30,15 @@ services:
       - ./server:/app/server
       - /app/server/node_modules
       - /app/server/dist
+    command: >
+      sh -c "cd server &&
+             npm run start:prod ||
+             (echo 'Server failed to start' && exit 1)"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 3
     networks:
       - prod-network
     restart: unless-stopped

@@ -15,7 +15,8 @@
     "prisma:studio": "prisma studio",
     "docker:build": "docker build -t beauty-bar .",
     "docker:run": "docker run -p 3000:3000 beauty-bar",
-    "deploy:prod": "docker-compose -f docker-compose.prod.yml up -d"
+    "deploy:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "start:prod": "node dist/index.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
