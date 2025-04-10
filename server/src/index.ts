@@ -55,7 +55,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
 });
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
+const port = parseInt(process.env.PORT || '3000', 10);
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${port}`);
+});
+
+// Add error handling for the server
+server.on('error', (error) => {
+  console.error('Server error:', error);
 }); 
