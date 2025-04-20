@@ -1,53 +1,33 @@
 FROM node:18-alpine AS frontend-builder
-WORKDIR /app/frontend
+WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm install
 COPY client/ .
 RUN npm run build
 
 FROM node:18-alpine AS backend-builder
-WORKDIR /app/backend
-# Install OpenSSL and clean cache in same layer
-RUN apk add --no-cache openssl && rm -rf /var/cache/apk/*
+WORKDIR /app/server
 COPY server/package*.json ./
-# Combine install commands to reduce layers
-RUN npm install && \
-    npm install @types/node --save-dev && \
-    npm cache clean --force
-
+RUN npm install
 COPY server/ .
-RUN npx prisma generate && \
-    npx tsc -p prisma/tsconfig.prisma.json && \
-    npm run build && \
-    npx tsc -p prisma/tsconfig.seed.json
+RUN npm run build && \
+    npx prisma generate
 
 FROM node:18-alpine
-# Install OpenSSL in final stage
-RUN apk add --no-cache openssl
-
-# Start in root directory
 WORKDIR /app
 
-# Copy files maintaining structure
-COPY --from=frontend-builder /app/frontend/dist ./client/dist
-COPY --from=backend-builder /app/backend/dist ./server/dist
-COPY --from=backend-builder /app/backend/package*.json ./server/
-COPY --from=backend-builder /app/backend/prisma ./server/prisma
-COPY --from=backend-builder /app/backend/prisma/dist/seed.js ./server/prisma/
-COPY --from=backend-builder /app/backend/node_modules/.prisma ./server/node_modules/.prisma
+# Copy built assets
+COPY --from=frontend-builder /app/client/dist ./client/dist
+COPY --from=backend-builder /app/server/dist ./server/dist
+COPY --from=backend-builder /app/server/package*.json ./server/
+COPY --from=backend-builder /app/server/node_modules ./server/node_modules
+COPY --from=backend-builder /app/server/prisma ./server/prisma
 
-# Install dependencies and set permissions
+# Set working directory
 WORKDIR /app/server
-RUN npm install --production && \
-    npx prisma generate && \
-    mkdir -p node_modules/.prisma && \
-    chmod -R 777 node_modules/.prisma
 
-# Stay in /app for final state
-WORKDIR /app
-
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Generate Prisma client in final stage
+RUN npx prisma generate
 
 EXPOSE 3000
-CMD ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["npm", "run", "start:prod"]
