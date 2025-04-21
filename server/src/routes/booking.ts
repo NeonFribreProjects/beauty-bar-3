@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { prisma } from '../index';
+import { prisma, Booking } from '../index';
 import { sendBookingConfirmation, sendBookingStatusUpdate } from '../utils/email';
 import { DateTime } from 'luxon';
+import { Prisma } from '@prisma/client';
 
 const router = Router();
 
@@ -20,7 +21,7 @@ router.get('/', async (req: Request, res: Response) => {
     });
 
     // Format dates for response
-    const formattedBookings = bookings.map(booking => ({
+    const formattedBookings = bookings.map((booking: Prisma.Booking) => ({
       ...booking,
       appointmentStart: DateTime.fromJSDate(booking.appointmentStart)
         .setZone('America/Toronto')
