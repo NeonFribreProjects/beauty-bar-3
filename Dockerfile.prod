@@ -11,8 +11,7 @@ COPY server/package*.json ./
 RUN npm install
 COPY server/ .
 # Use transpile-only to match dev behavior
-RUN npx tsc --transpile-only && \
-    npx prisma generate
+RUN npx tsc && npx prisma generate
 
 FROM node:18-alpine
 WORKDIR /app
