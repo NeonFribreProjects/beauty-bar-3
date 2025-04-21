@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { prisma, Booking } from '../index';
+import { PrismaClient, Booking } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { sendBookingConfirmation, sendBookingStatusUpdate } from '../utils/email';
 import { DateTime } from 'luxon';
 import { Prisma } from '@prisma/client';
