@@ -24,12 +24,9 @@ router.get('/Featured', async (req: Request, res: Response) => {
     }
 
     res.json(featuredServices);
-  } catch (error) {
-    console.error('Error fetching featured services:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch featured services',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: errorMessage });
   }
 });
 

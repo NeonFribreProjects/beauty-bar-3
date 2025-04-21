@@ -10,7 +10,7 @@ WORKDIR /app/server
 COPY server/package*.json ./
 RUN npm install
 COPY server/ .
-RUN npm run build && \
+RUN npm run build || (echo "TypeScript compilation failed" && exit 1) && \
     npx prisma generate
 
 FROM node:18-alpine
