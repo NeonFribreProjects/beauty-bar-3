@@ -10,11 +10,15 @@ WORKDIR /app/server
 COPY server/package*.json ./
 RUN npm install
 COPY server/ .
-RUN npm run build || (echo "TypeScript compilation failed" && exit 1) && \
+# Use transpile-only to match dev behavior
+RUN npx tsc --transpile-only && \
     npx prisma generate
 
 FROM node:18-alpine
 WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
 
 # Copy built assets
 COPY --from=frontend-builder /app/client/dist ./client/dist
@@ -25,9 +29,6 @@ COPY --from=backend-builder /app/server/prisma ./server/prisma
 
 # Set working directory
 WORKDIR /app/server
-
-# Generate Prisma client in final stage
-RUN npx prisma generate
 
 EXPOSE 3000
 CMD ["npm", "run", "start:prod"]
