@@ -1,12 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { sendBookingConfirmation, sendBookingStatusUpdate } from '../utils/email';
 import { DateTime } from 'luxon';
 
 const router = Router();
-
-
 
 // Get all bookings
 router.get('/', async (req: Request, res: Response) => {
@@ -23,9 +21,7 @@ router.get('/', async (req: Request, res: Response) => {
     });
 
     // Format dates for response
-    const formattedBookings = bookings.map((booking: Prisma.BookingGetPayload<{
-      include: { service: { include: { category: true } } }
-    }>) => ({
+    const formattedBookings = bookings.map((booking: any) => ({
       ...booking,
       appointmentStart: DateTime.fromJSDate(booking.appointmentStart)
         .setZone('America/Toronto')
