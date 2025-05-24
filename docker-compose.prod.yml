@@ -10,13 +10,15 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - VITE_API_URL=http://localhost:3000
+      - VITE_API_URL=http://localhost:3000  #https://bookpal.ca
       - CLIENT_URL=http://localhost
       - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar_prod
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD}
+    volumes:
+      - ./server/prisma:/app/server/prisma
     deploy:
       resources:
         limits:
