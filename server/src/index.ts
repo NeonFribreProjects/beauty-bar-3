@@ -16,11 +16,19 @@ export const redis = new Redis(process.env.REDIS_URL || 'redis://redis:6379');
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:5173' 
-    : process.env.CLIENT_URL,
-  credentials: true
+  origin: [
+    'http://localhost',
+    'http://localhost:80',
+    'http://localhost:3000',
+    'http://bookpal.ca'  // Add your domain
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+console.log('CORS configuration applied');
+
 app.use(express.json());
 
 // Health check endpoint (MOVED UP)
