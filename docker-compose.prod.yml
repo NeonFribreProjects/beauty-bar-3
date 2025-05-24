@@ -10,7 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - VITE_API_URL=http://localhost:3000  #https://bookpal.ca
+      - VITE_API_URL=https://bookpal.ca/api
       - CLIENT_URL=http://localhost
       - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar_prod
       - REDIS_URL=redis://redis:6379
