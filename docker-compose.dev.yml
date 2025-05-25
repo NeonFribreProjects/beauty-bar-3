@@ -15,7 +15,7 @@ services:
       - PORT=3000    # Explicitly set port
       - VITE_API_URL=http://65.21.158.167:3000
       - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar_dev
-      - REDIS_URL=redis://redis:6380  # Changed Redis port
+      - REDIS_URL=redis://redis:6380
     volumes:
       - ./client:/app/client:delegated
       - client_node_modules:/app/client/node_modules
@@ -54,18 +54,21 @@ services:
   redis:
     image: redis:alpine
     ports:
-      - "6380:6379"  # Changed from 6379:6379
-    volumes:
-      - redis_data_dev:/data  # Changed volume name
+      - "6380:6380"
     networks:
       - dev-network
-
-networks:
-  dev-network:
-    name: beauty-bar-dev-network
+    command: redis-server --port 6380
+    volumes:
+      - redis-dev-data:/data
+    restart: unless-stopped
 
 volumes:
   client_node_modules:
   server_node_modules:
   postgres_data_dev:  # Changed from postgres_data
-  redis_data_dev:    # Changed from redis_data
+  redis-dev-data:
+    driver: local
+
+networks:
+  dev-network:
+    driver: bridge

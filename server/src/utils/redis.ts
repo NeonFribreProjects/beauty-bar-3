@@ -1,25 +1,30 @@
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 
-// Add console.log to debug the URL being used
-const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
-console.log('Connecting to Redis at:', redisUrl);
+const REDIS_URL = process.env.REDIS_URL || 'redis://redis:6379';
 
-export const redis = new Redis(redisUrl, {
+const redisClient = new Redis(REDIS_URL, {
   retryStrategy: (times) => {
-    // Retry connection up to 3 times
-    if (times > 3) {
-      return null;
-    }
-    return Math.min(times * 50, 2000);
+    const delay = Math.min(times * 50, 2000);
+    console.log(`Retrying Redis connection... Attempt ${times}`);
+    return delay;
   },
-  maxRetriesPerRequest: 3
+  maxRetriesPerRequest: 5,
+  enableReadyCheck: true,
+  reconnectOnError: (err) => {
+    const targetError = 'READONLY';
+    if (err.message.includes(targetError)) {
+      return true;
+    }
+    return false;
+  }
 });
 
-// Add error handling
-redis.on('error', (error) => {
+redisClient.on('error', (error) => {
   console.error('Redis connection error:', error);
 });
 
-redis.on('connect', () => {
+redisClient.on('connect', () => {
   console.log('Successfully connected to Redis');
-}); 
+});
+
+export const redis = redisClient; 
