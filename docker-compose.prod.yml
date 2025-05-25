@@ -19,6 +19,7 @@ services:
       - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD}
     volumes:
       - ./server/prisma:/app/server/prisma
+      - ./server/tsconfig.json:/app/server/tsconfig.json
     deploy:
       resources:
         limits:

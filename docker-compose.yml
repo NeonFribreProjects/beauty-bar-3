@@ -30,6 +30,9 @@ services:
       - ./server:/app/server
       - /app/server/node_modules
       - /app/server/dist
+      - ./server/prisma:/app/server/prisma
+      - ./server/tsconfig.json:/app/server/tsconfig.json
+      - ./server/prisma/tsconfig.seed.json:/app/server/prisma/tsconfig.seed.json
     command: >
       sh -c "cd server &&
              npm run start:prod"
