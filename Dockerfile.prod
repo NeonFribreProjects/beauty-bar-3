@@ -16,16 +16,14 @@ RUN apk add --no-cache \
 COPY server/package*.json ./
 RUN npm install
 COPY server/ .
-RUN npx prisma generate
+# Use transpile-only to match dev behavior
+RUN npx tsc && npx prisma generate
 
 FROM node:18-alpine
 WORKDIR /app
 
-# Install OpenSSL with dev packages
-RUN apk add --no-cache \
-    openssl \
-    openssl-dev \
-    libc6-compat
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
 
 # Copy built assets
 COPY --from=frontend-builder /app/client/dist ./client/dist
