@@ -18,16 +18,32 @@ const API_BASE_URL = import.meta.env.DEV
 export const api = {
   // Business Hours
   getBusinessHours: async (): Promise<BusinessHours[]> => {
-    const response = await fetch(`${API_BASE_URL}/business-hours`);
-    if (!response.ok) throw new Error('Failed to fetch business hours');
-    return response.json();
+    try {
+      const response = await fetch(`${API_BASE_URL}/business-hours`);
+      if (!response.ok) {
+        console.error(`API Error: ${response.status} - ${response.statusText}`);
+        throw new Error('Failed to fetch business hours');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Business Hours Error:', error);
+      throw error;
+    }
   },
 
   // Service Availability
   getServiceAvailability: async (serviceId: string): Promise<ServiceAvailability> => {
-    const response = await fetch(`${API_BASE_URL}/services/${serviceId}/availability`);
-    if (!response.ok) throw new Error('Failed to fetch service availability');
-    return response.json();
+    try {
+      const response = await fetch(`${API_BASE_URL}/services/${serviceId}/availability`);
+      if (!response.ok) {
+        console.error(`API Error: ${response.status} - ${response.statusText}`);
+        throw new Error('Failed to fetch service availability');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Service Availability Error:', error);
+      throw error;
+    }
   },
 
   // Bookings

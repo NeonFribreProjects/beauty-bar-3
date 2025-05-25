@@ -7,17 +7,25 @@ RUN npm run build
 
 FROM node:18-alpine AS backend-builder
 WORKDIR /app/server
+# Add OpenSSL dependencies
+RUN apk add --no-cache \
+    openssl \
+    openssl-dev \
+    libc6-compat
+
 COPY server/package*.json ./
 RUN npm install
 COPY server/ .
-# Use transpile-only to match dev behavior
-RUN npx tsc && npx prisma generate
+RUN npx prisma generate
 
 FROM node:18-alpine
 WORKDIR /app
 
-# Install OpenSSL for Prisma
-RUN apk add --no-cache openssl
+# Install OpenSSL with dev packages
+RUN apk add --no-cache \
+    openssl \
+    openssl-dev \
+    libc6-compat
 
 # Copy built assets
 COPY --from=frontend-builder /app/client/dist ./client/dist

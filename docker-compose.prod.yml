@@ -11,7 +11,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - VITE_API_URL=https://bookpal.ca/api
-      - CLIENT_URL=http://localhost
+      - CLIENT_URL=https://bookpal.ca
       - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar_prod
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
