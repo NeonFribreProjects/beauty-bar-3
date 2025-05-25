@@ -33,7 +33,17 @@ services:
       - ./server/prisma:/app/server/prisma
       - ./server/tsconfig.json:/app/server/tsconfig.json
       - ./server/prisma/tsconfig.seed.json:/app/server/prisma/tsconfig.seed.json
-    command: sh -c "/app/docker-entrypoint.sh && cd server && npm run start:prod"
+    command: >
+      sh -c "
+        while ! nc -z db 5432; do
+          echo 'Waiting for database to be ready...'
+          sleep 2
+        done &&
+        cd server &&
+        npx prisma migrate deploy &&
+        npx prisma generate &&
+        npm run start:prod
+      "
     networks:
       - prod-network
     restart: unless-stopped
