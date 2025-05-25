@@ -31,10 +31,11 @@ services:
       - prod-network
     restart: always
     command: >
-      sh -c "
-        npx prisma migrate deploy
-        && npx prisma db seed
-        && npm run start:prod"
+      sh -c '
+        npx prisma migrate deploy &&
+        npx prisma db seed &&
+        npm run start:prod
+      '
 
   nginx:
     build:
