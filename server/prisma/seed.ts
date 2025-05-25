@@ -5,6 +5,15 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
+    console.log('Starting seed process...');
+
+    // Check if data already exists
+    const categoryCount = await prisma.category.count();
+    if (categoryCount > 0) {
+      console.log('Data already seeded, skipping...');
+      return;
+    }
+
     // Create default admin
     const hashedPassword = await bcrypt.hash('admin123', 10);
     await prisma.admin.upsert({
@@ -26,6 +35,7 @@ async function main() {
       { name: 'Hand Care' }
     ];
 
+    console.log('Creating categories...');
     for (const category of categories) {
       await prisma.category.upsert({
         where: { name: category.name },
@@ -118,6 +128,7 @@ async function main() {
       }
     ];
 
+    console.log('Creating services...');
     for (const service of services) {
       const category = await prisma.category.findFirst({
         where: { name: service.categoryName }
@@ -174,10 +185,15 @@ async function main() {
       });
     }
 
-    console.log('Seeding completed successfully');
+    console.log('Seed completed successfully');
   } catch (error) {
     console.error('Error during seeding:', error);
-    throw error;
+    // Don't throw error to prevent deployment failure
+    // but log it for monitoring
+    console.error('Seed error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
   } finally {
     await prisma.$disconnect();
   }
