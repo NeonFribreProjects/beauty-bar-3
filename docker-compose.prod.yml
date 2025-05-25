@@ -54,7 +54,7 @@ services:
       - POSTGRES_PASSWORD=kevjeff1
       - POSTGRES_DB=beauty_bar_prod
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_prod:/var/lib/postgresql/data
     networks:
       - prod-network
     restart: always
@@ -62,7 +62,7 @@ services:
   redis:
     image: redis:alpine
     volumes:
-      - redis_data:/data
+      - redis_data_prod:/data
     networks:
       - prod-network
     restart: always
@@ -72,5 +72,5 @@ networks:
     name: beauty-bar-prod-network
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_data_prod:
+  redis_data_prod:

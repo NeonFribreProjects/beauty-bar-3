@@ -8,14 +8,14 @@ services:
     networks:
       - dev-network
     ports:
-      - "3000:3000"  # Backend API
-      - "5173:5173"  # Vite dev server
+      - "3001:3000"  # Changed from 3000:3000
+      - "5174:5173"  # Changed from 5173:5173
     environment:
       - NODE_ENV=development
       - PORT=3000    # Explicitly set port
       - VITE_API_URL=http://65.21.158.167:3000
       - DATABASE_URL=postgresql://postgres:kevjeff1@db:5432/beauty_bar_dev
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6380  # Changed Redis port
     volumes:
       - ./client:/app/client:delegated
       - client_node_modules:/app/client/node_modules
@@ -42,17 +42,21 @@ services:
     image: postgres:14-alpine
     networks:
       - dev-network
+    ports:
+      - "5433:5432"  # Changed from 5432:5432
     environment:
       - POSTGRES_DB=beauty_bar_dev  # Different DB name
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=kevjeff1
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data  # Changed volume name
 
   redis:
     image: redis:alpine
+    ports:
+      - "6380:6379"  # Changed from 6379:6379
     volumes:
-      - redis_data:/data
+      - redis_data_dev:/data  # Changed volume name
     networks:
       - dev-network
 
@@ -63,5 +67,5 @@ networks:
 volumes:
   client_node_modules:
   server_node_modules:
-  postgres_data:
-  redis_data:
+  postgres_data_dev:  # Changed from postgres_data
+  redis_data_dev:    # Changed from redis_data
