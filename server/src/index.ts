@@ -49,7 +49,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/api', healthRouter);
+//app.use('/api', healthRouter);
 
 // Add before routes
 app.use(securityHeaders);
