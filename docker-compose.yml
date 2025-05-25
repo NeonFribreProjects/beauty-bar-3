@@ -33,9 +33,7 @@ services:
       - ./server/prisma:/app/server/prisma
       - ./server/tsconfig.json:/app/server/tsconfig.json
       - ./server/prisma/tsconfig.seed.json:/app/server/prisma/tsconfig.seed.json
-    command: >
-      sh -c "cd server &&
-             npm run start:prod"
+    command: sh -c "/app/docker-entrypoint.sh && cd server && npm run start:prod"
     networks:
       - prod-network
     restart: unless-stopped
